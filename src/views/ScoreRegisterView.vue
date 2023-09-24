@@ -47,21 +47,25 @@
     </v-row>
     <v-row justify="end">
       <v-col cols="3" sm="2" md="1">
-        <v-btn disabled>登録</v-btn>
+        <v-btn @click="registerScore()">登録</v-btn>
       </v-col>
     </v-row>
+
+    <progress-overlay :is-show="showOverlay" />
   </v-container>
 </template>
 <script setup lang="ts">
-import { computed, reactive } from 'vue';
+import { computed, reactive, watch } from 'vue';
 import { VContainer, VRow, VCol, VRadioGroup, VRadio, VTextField } from 'vuetify/components';
 import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import MusicAutocomplete from '@/components/atomic/MusicAutocomplete.vue';
 import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
+import ProgressOverlay from '@/components/atomic/ProgressOverlay.vue';
 import { DifficultyRankList, DifficultyRank as Difficulty } from '@/model/Game';
-import { AccuracyList, type AccuracyKeyValue, Accuracy, calcRankMatchScore } from '@/model/Score';
+import { AccuracyList, type AccuracyKeyValue, Accuracy, calcRankMatchScore, type ScoreData } from '@/model/Score';
 import { useMusicStore } from '@/stores/MusicStore';
-import { watch } from 'vue';
+import { useScoreStore } from '@/stores/ScoreStore';
+import { ref } from 'vue';
 
 const ScoreDetailInputs: Array<{ name: string; key: keyof ScoreDetail }> = [
   { name: 'Combo', key: 'combo' },
@@ -89,7 +93,7 @@ interface ScoreDetail {
   late: number;
   flick: number;
 }
-
+const showOverlay = ref(false);
 const state = reactive({
   musicTitle: '',
   difficulty: Difficulty.MASTER,
@@ -98,6 +102,7 @@ const state = reactive({
 });
 
 const { musicList } = useMusicStore();
+const { upsertData } = useScoreStore();
 
 const music = computed(() => musicList.find((music) => music.title === state.musicTitle));
 const difficulty = computed(() => music.value?.getDifficulty(state.difficulty));
@@ -115,4 +120,26 @@ watch(
     state.scoreDetail = { combo: difficulty.value.noteCount, fast: 0, late: 0, flick: 0 };
   }
 );
+
+const registerScore = async () => {
+  if (music.value?.id === undefined || difficulty.value?.rank === undefined) {
+    return;
+  }
+
+  try {
+    showOverlay.value = true;
+
+    const scoreData: ScoreData = {
+      musicId: music.value.id,
+      difficulty: difficulty.value.rank,
+      combo: state.scoreDetail.combo,
+      accuracyCount: { ...state.accuracyKeyValue },
+      judgmentCount: { ...state.scoreDetail },
+    };
+
+    await upsertData(scoreData);
+  } finally {
+    showOverlay.value = false;
+  }
+};
 </script>

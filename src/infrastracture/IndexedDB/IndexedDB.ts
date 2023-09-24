@@ -20,13 +20,15 @@ interface IScoreData {
   };
 }
 
-export class IndexedDatabase extends Dexie {
-  scoreData!: Dexie.Table<IScoreData, number>;
+class IndexedDatabase extends Dexie {
+  scoreTable!: Dexie.Table<IScoreData, Array<number | string>>;
 
   constructor() {
     super('SekaiRecDatabase');
     this.version(1).stores({
-      scoreData: '[musicId+difficulty]',
+      scoreTable: '[musicId+difficulty]',
     });
   }
 }
+
+export const DB = new IndexedDatabase();

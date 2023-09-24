@@ -71,10 +71,20 @@ import type { DifficultyRank as Difficulty } from '@/model/Game';
 import { calcRankMatchScore } from '@/model/Score';
 import type { FilterCondition } from '@/model/Filter';
 import { useScoreStore } from '@/stores/ScoreStore';
+import { onMounted } from 'vue';
 
 export type ScoreType = 'rate' | 'rankMatch' | 'ap';
 
+const headers = [
+  { title: '楽曲名', align: 'start', sortable: true, key: 'title' },
+  { title: '難易度', align: 'start', sortable: true, key: 'difficulty' },
+  { title: 'レベル', align: 'start', sortable: true, key: 'level' },
+  { title: 'スコア', align: 'end', sortable: true, key: 'scoreRate' },
+];
+
 const { xs } = useDisplay();
+const { findMusic } = useMusicStore();
+const { fetchAllData, allData } = useScoreStore();
 
 // props
 const props = defineProps({
@@ -99,15 +109,11 @@ const Filters = {
 };
 
 // data
-const headers = [
-  { title: '楽曲名', align: 'start', sortable: true, key: 'title' },
-  { title: '難易度', align: 'start', sortable: true, key: 'difficulty' },
-  { title: 'レベル', align: 'start', sortable: true, key: 'level' },
-  { title: 'スコア', align: 'end', sortable: true, key: 'scoreRate' },
-];
+const pageSizeList = [10, 30, 50, 100, 300];
 
-const { findMusic } = useMusicStore();
-const { scoreList } = useScoreStore();
+const page = ref(1);
+const itemsPerPage = ref(30);
+const pageCount = computed(() => Math.floor(items.value.length / itemsPerPage.value) + 1);
 
 interface RowItem {
   musicId: number;
@@ -119,40 +125,39 @@ interface RowItem {
   maxScore: number;
 }
 
-const scoreRecords: RowItem[] = scoreList
-  .flatMap((score) => {
-    const music = findMusic(score.musicId);
-    const diff = music?.getDifficulty(score.difficulty);
-    if (music === undefined || diff === undefined) {
-      return [];
-    }
-
-    const rankScore = calcRankMatchScore(score.accuracyCount);
-    const maxScore = diff.noteCount * 3;
-
-    const row: RowItem = {
-      musicId: score.musicId,
-      title: music?.title ?? '',
-      difficulty: score.difficulty,
-      level: diff?.level ?? 0,
-      score: rankScore,
-      maxScore: maxScore,
-      scoreRate: (rankScore / maxScore) * 100,
-    };
-
-    return row;
-  })
-  .sort((a, b) => a.title.localeCompare(b.title));
+// computed
+onMounted(async () => {
+  await fetchAllData();
+});
 
 const items = computed(() => {
+  const scoreRecords: RowItem[] = allData
+    .flatMap((score) => {
+      const music = findMusic(score.musicId);
+      const diff = music?.getDifficulty(score.difficulty);
+      if (music === undefined || diff === undefined) {
+        return [];
+      }
+
+      const rankScore = calcRankMatchScore(score.accuracyCount);
+      const maxScore = diff.noteCount * 3;
+
+      const row: RowItem = {
+        musicId: score.musicId,
+        title: music?.title ?? '',
+        difficulty: score.difficulty,
+        level: diff?.level ?? 0,
+        score: rankScore,
+        maxScore: maxScore,
+        scoreRate: (rankScore / maxScore) * 100,
+      };
+
+      return row;
+    })
+    .sort((a, b) => a.title.localeCompare(b.title));
+
   return scoreRecords.filter((rec) => {
     return Filters.title(rec.title) && Filters.difficulty(rec.difficulty) && Filters.level(rec.level);
   });
 });
-
-const pageSizeList = [10, 30, 50, 100, 300];
-
-const page = ref(1);
-const itemsPerPage = ref(30);
-const pageCount = computed(() => Math.floor(items.value.length / itemsPerPage.value) + 1);
 </script>

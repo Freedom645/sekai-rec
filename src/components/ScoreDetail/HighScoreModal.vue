@@ -41,7 +41,7 @@ defineProps({
     required: true,
   },
   difficulty: {
-    type: Object as PropType<DifficultyRank>,
+    type: String as PropType<DifficultyRank>,
     required: true,
   },
 });
