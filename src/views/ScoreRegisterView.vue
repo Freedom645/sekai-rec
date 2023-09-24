@@ -69,7 +69,7 @@
   </v-container>
 </template>
 <script setup lang="ts">
-import { computed, reactive, watch, ref } from 'vue';
+import { computed, reactive, watch } from 'vue';
 import { VContainer, VRow, VCol, VRadioGroup, VRadio, VTextField } from 'vuetify/components';
 import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import MusicAutocomplete from '@/components/atomic/MusicAutocomplete.vue';

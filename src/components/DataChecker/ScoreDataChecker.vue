@@ -4,8 +4,10 @@
       <v-expansion-panel-title disable-icon-rotate>
         データ検証
         <template v-slot:actions>
-          <v-icon v-if="hasError" color="warning" icon="mdi-alert" />
-          <v-icon v-else color="success" icon="mdi-check-circle" />
+          <v-fab-transition>
+            <v-icon v-if="hasError" color="warning" icon="mdi-alert" />
+            <v-icon v-else color="success" icon="mdi-check-circle" />
+          </v-fab-transition>
         </template>
       </v-expansion-panel-title>
       <v-expansion-panel-text>
@@ -22,11 +24,17 @@
               </v-tooltip>
             </v-col>
             <v-col cols="1">
-              <v-icon v-if="!errors[key]" icon="mdi-check-circle" color="success" />
-              <v-icon v-else icon="mdi-alert" color="warning" />
+              <v-fab-transition>
+                <v-icon v-if="!errors[key]" icon="mdi-check-circle" color="success" />
+                <v-icon v-else icon="mdi-alert" color="warning" />
+              </v-fab-transition>
             </v-col>
             <v-col>
-              {{ errors[key] }}
+              <v-scroll-x-transition>
+                <div v-if="errors[key]">
+                  {{ errors[key] }}
+                </div>
+              </v-scroll-x-transition>
             </v-col>
           </v-row>
         </v-container>
