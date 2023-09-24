@@ -1,9 +1,9 @@
 <template>
   <v-container>
-    <v-row>
-      <v-col class="text-center"><v-icon color="yellow" icon="mdi-alert" />FLICK</v-col>
-      <v-col> {{ count }} </v-col>
-    </v-row>
+    <v-chip prepend-icon="mdi-alert" variant="text" color="yellow">
+      <span class="font-weight-bold"> FLICK </span>
+      <span class="font-weight-bold ml-5" style="color: white"> {{ count }} </span>
+    </v-chip>
   </v-container>
 </template>
 
