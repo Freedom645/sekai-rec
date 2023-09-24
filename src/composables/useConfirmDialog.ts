@@ -7,6 +7,12 @@ type DialogText = {
   cancel?: string;
 };
 
+interface NoticeText {
+  title?: string;
+  text?: string;
+  close?: string;
+}
+
 const isOpen = ref<boolean>(false);
 
 const dialogText = ref<DialogText>({
@@ -16,13 +22,25 @@ const dialogText = ref<DialogText>({
   cancel: 'キャンセル',
 });
 
+let _resolve: (value: boolean | PromiseLike<boolean>) => void;
+
 export function useConfirmDialog() {
-  let _resolve: (value: boolean | PromiseLike<boolean>) => void;
   const confirm = (props: DialogText = {}) => {
     dialogText.value.title = props.title ?? '確認';
-    dialogText.value.text = props.text;
+    dialogText.value.text = props.text ?? '';
     dialogText.value.ok = props.ok ?? 'OK';
     dialogText.value.cancel = props.cancel ?? 'キャンセル';
+    isOpen.value = true;
+    return new Promise<boolean>((resolve) => {
+      _resolve = resolve;
+    });
+  };
+
+  const notice = (props: NoticeText = {}) => {
+    dialogText.value.title = props.title ?? '確認';
+    dialogText.value.text = props.text ?? '';
+    dialogText.value.ok = '';
+    dialogText.value.cancel = props.close ?? '閉じる';
     isOpen.value = true;
     return new Promise<boolean>((resolve) => {
       _resolve = resolve;
@@ -45,6 +63,7 @@ export function useConfirmDialog() {
 
   return {
     confirm,
+    notice,
     ok,
     cancel,
     close,

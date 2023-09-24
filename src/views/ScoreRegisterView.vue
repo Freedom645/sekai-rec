@@ -66,8 +66,6 @@
         <v-btn @click="registerScore()">登録</v-btn>
       </v-col>
     </v-row>
-
-    <progress-overlay :is-show="showOverlay" />
   </v-container>
 </template>
 <script setup lang="ts">
@@ -76,13 +74,13 @@ import { VContainer, VRow, VCol, VRadioGroup, VRadio, VTextField } from 'vuetify
 import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import MusicAutocomplete from '@/components/atomic/MusicAutocomplete.vue';
 import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
-import ProgressOverlay from '@/components/atomic/ProgressOverlay.vue';
 import ScoreDataChecker from '@/components/DataChecker/ScoreDataChecker.vue';
 import { DifficultyRankList, DifficultyRank as Difficulty } from '@/model/Game';
 import { AccuracyList, Accuracy, type ScoreData, type AccuracyCount, type JudgmentCount } from '@/model/Score';
 import { useMusicStore } from '@/stores/MusicStore';
 import { useScoreStore } from '@/stores/ScoreStore';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
+import { useProgressOverlay } from '@/composables/useProgressOverlay';
 
 const ScoreDetailInputs: Array<{ name: string; key: keyof JudgmentCount }> = [
   { name: 'Late', key: 'late' },
@@ -103,7 +101,6 @@ const ScoreDetailRules = [
   (value: unknown) => value === undefined || value === '' || Number.isInteger(value) || '整数で入力してください。',
 ];
 
-const showOverlay = ref(false);
 const state = reactive({
   musicTitle: '',
   difficulty: Difficulty.MASTER,
@@ -114,7 +111,8 @@ const state = reactive({
 
 const { musicList } = useMusicStore();
 const { upsertData } = useScoreStore();
-const { confirm } = useConfirmDialog();
+const { confirm, notice } = useConfirmDialog();
+const { show: showProgress, hidden: hiddenProgress } = useProgressOverlay();
 
 const music = computed(() => musicList.find((music) => music.title === state.musicTitle));
 const difficulty = computed(() => music.value?.getDifficulty(state.difficulty));
@@ -142,7 +140,7 @@ const registerScore = async () => {
   }
 
   try {
-    showOverlay.value = true;
+    showProgress();
 
     const scoreData: ScoreData = {
       musicId: music.value.id,
@@ -154,7 +152,9 @@ const registerScore = async () => {
 
     await upsertData(scoreData);
   } finally {
-    showOverlay.value = false;
+    hiddenProgress();
   }
+
+  notice({ title: '登録完了', text: '登録完了しました。' });
 };
 </script>

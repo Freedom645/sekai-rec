@@ -8,8 +8,8 @@
 
         <v-card-actions>
           <v-spacer />
-          <v-btn v-if="dialogText.ok" color="success" :text="dialogText.ok" @click="ok()"></v-btn>
-          <v-btn v-if="dialogText.cancel" :text="dialogText.cancel" @click="cancel()"></v-btn>
+          <v-btn v-if="dialogText.ok" color="success" :text="dialogText.ok" @click="() => ok()"></v-btn>
+          <v-btn v-if="dialogText.cancel" :text="dialogText.cancel" @click="() => cancel()"></v-btn>
         </v-card-actions>
       </v-card>
     </template>
@@ -17,8 +17,8 @@
 </template>
 
 <script lang="ts" setup>
-import { VDialog, VCard, VCardText, VCardActions } from 'vuetify/lib/components/index.mjs';
+import { VDialog, VCard, VCardText, VCardActions, VBtn } from 'vuetify/lib/components/index.mjs';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 
-const { isOpen, ok, cancel, close, dialogText } = useConfirmDialog();
+const { isOpen, ok, cancel, dialogText } = useConfirmDialog();
 </script>
