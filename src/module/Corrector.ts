@@ -8,7 +8,7 @@ export const searchFuzzy = (str: string, list: Music[]) => {
     .sort((left, right) => right.distance - left.distance);
 };
 
-type CheckFunction = (master: Music, data: ScoreData) => boolean;
+type CheckFunction = (master: Music, data: ScoreData) => string;
 
 interface Validator {
   title: string;
@@ -23,19 +23,21 @@ export const Checker: Record<string, Validator> = {
     validator: (master: Music, data: ScoreData) => {
       const totalNotes = master.getDifficulty(data.difficulty).noteCount;
       const sum = Object.values(data.accuracyCount).reduce((pre, curr) => pre + curr, 0);
-      return totalNotes === sum;
+      return totalNotes === sum ? '' : `総ノーツ数${totalNotes}に対して、合計${sum}が入力されました。`;
     },
   },
   judgementCount: {
     title: '判定数チェック',
-    description: 'Great～Badのノーツ数が、Fast、Late、Flickと一致しているか確認します。',
+    description: 'Great～Badのノーツ数が、Late、Fast、Flickと一致しているか確認します。',
     validator: (_: Music, data: ScoreData) => {
       const accList = [Accuracy.GREAT, Accuracy.GOOD, Accuracy.BAD];
       const judgeList = [...JudgmentList];
 
       const accSum = accList.reduce((sum, key) => sum + data.accuracyCount[key], 0);
       const judgeSum = judgeList.reduce((sum, key) => sum + data.judgmentCount[key], 0);
-      return accSum === judgeSum;
+      return accSum === judgeSum
+        ? ''
+        : `Great～Badのノーツ数${accSum}に対して、Late、Fast、Flickのノーツ数が${judgeSum}入力されました。`;
     },
   },
   comboCount: {
@@ -50,7 +52,9 @@ export const Checker: Record<string, Validator> = {
       const maxCombo = totalNotes - cbCount;
       const minCombo = Math.ceil(maxCombo / (cbCount + 1));
 
-      return minCombo <= data.combo && data.combo <= maxCombo;
+      return minCombo <= data.combo && data.combo <= maxCombo
+        ? ''
+        : `${minCombo}～${maxCombo}の範囲外のコンボ数${data.combo}が入力されました。`;
     },
   },
 };
