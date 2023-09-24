@@ -79,16 +79,10 @@ import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
 import ProgressOverlay from '@/components/atomic/ProgressOverlay.vue';
 import ScoreDataChecker from '@/components/DataChecker/ScoreDataChecker.vue';
 import { DifficultyRankList, DifficultyRank as Difficulty } from '@/model/Game';
-import {
-  AccuracyList,
-  Accuracy,
-  calcRankMatchScore,
-  type ScoreData,
-  type AccuracyCount,
-  type JudgmentCount,
-} from '@/model/Score';
+import { AccuracyList, Accuracy, type ScoreData, type AccuracyCount, type JudgmentCount } from '@/model/Score';
 import { useMusicStore } from '@/stores/MusicStore';
 import { useScoreStore } from '@/stores/ScoreStore';
+import { useConfirmDialog } from '@/composables/useConfirmDialog';
 
 const ScoreDetailInputs: Array<{ name: string; key: keyof JudgmentCount }> = [
   { name: 'Late', key: 'late' },
@@ -120,11 +114,10 @@ const state = reactive({
 
 const { musicList } = useMusicStore();
 const { upsertData } = useScoreStore();
+const { confirm } = useConfirmDialog();
 
 const music = computed(() => musicList.find((music) => music.title === state.musicTitle));
 const difficulty = computed(() => music.value?.getDifficulty(state.difficulty));
-
-const rankMatchScore = computed(() => calcRankMatchScore(state.accuracyCount));
 
 watch(
   () => ({ music: music.value, difficulty: difficulty.value }),
@@ -141,6 +134,10 @@ watch(
 
 const registerScore = async () => {
   if (music.value?.id === undefined || difficulty.value?.rank === undefined) {
+    return;
+  }
+
+  if (!(await confirm({ text: '登録しますか？' }))) {
     return;
   }
 

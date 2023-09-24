@@ -20,6 +20,7 @@
     <v-main>
       <v-container class="main-container px-0">
         <RouterView />
+        <confirm-dialog />
       </v-container>
     </v-main>
   </v-app>
@@ -39,6 +40,7 @@ import {
   VMain,
   VContainer,
 } from 'vuetify/components';
+import ConfirmDialog from '@/components/utils/ConfirmDialog.vue';
 
 const drawer = ref(true);
 const sideMenuList = [
