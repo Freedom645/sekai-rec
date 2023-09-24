@@ -1,0 +1,40 @@
+@import './base.css';
+
+a,
+.green {
+  text-decoration: none;
+  color: var(--vt-c-white);
+  transition: 0.4s;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(0, 0%, 45%, 0.2);
+  }
+}
+
+:root {
+  --game-difficulty-rank-master: hsl(279deg, 80%, 50%);
+  --game-difficulty-rank-expert: hsl(350deg, 60%, 50%);
+  --game-difficulty-rank-hard: hsl(40deg, 90%, 45%);
+  --game-difficulty-rank-normal: hsl(200deg, 70%, 50%);
+  --game-difficulty-rank-easy: hsl(90deg, 50%, 50%);
+  
+  --game-accuracy-perfect: -webkit-linear-gradient(-90deg, #e369bc 10%, #8686F7 60%, #8CFFF5);
+  --game-accuracy-great: #E1A7F9;
+  --game-accuracy-good: #79D7F9;
+  --game-accuracy-bad: #78E89D;
+  --game-accuracy-miss: #B4B4B4;
+
+  --game-accuracy-late: #FF5488;
+  --game-accuracy-fast: #53AAFF;
+}
+
+.game-accuracy-perfect {
+  display: inline-block;
+  background: linear-gradient(-90deg, #E369BC 10%, #8686F7 60%, #8CFFF5);
+  background: -webkit-linear-gradient(-90deg, #E369BC 10%, #8686F7 60%, #8CFFF5);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
