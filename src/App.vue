@@ -20,6 +20,8 @@
     <v-main>
       <v-container class="main-container px-0">
         <RouterView />
+        <confirm-dialog />
+        <progress-overlay />
       </v-container>
     </v-main>
   </v-app>
@@ -39,6 +41,8 @@ import {
   VMain,
   VContainer,
 } from 'vuetify/components';
+import ConfirmDialog from '@/components/utils/ConfirmDialog.vue';
+import ProgressOverlay from '@/components/utils/ProgressOverlay.vue';
 
 const drawer = ref(true);
 const sideMenuList = [
