@@ -37,10 +37,20 @@ export const calcRankMatchScore = (value: AccuracyKeyValue<number>): number => {
 
 export type AccuracyCount = AccuracyKeyValue<number>;
 
+export const Judgment = {
+  LATE: 'late',
+  FAST: 'fast',
+  FLICK: 'flick',
+} as const;
+
+export type Judgment = (typeof Judgment)[keyof typeof Judgment];
+
+export const JudgmentList = [Judgment.LATE, Judgment.FAST, Judgment.FLICK] as const;
+
 export interface JudgmentCount {
-  late: number;
-  fast: number;
-  flick: number;
+  [Judgment.LATE]: number;
+  [Judgment.FAST]: number;
+  [Judgment.FLICK]: number;
 }
 
 export interface ScoreData {

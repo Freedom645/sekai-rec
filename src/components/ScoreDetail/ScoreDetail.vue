@@ -13,12 +13,17 @@
             <accuracy-label :value="accuracy" />
           </v-col>
           <v-col cols="6">
-            <zero-padding :combo="score?.accuracyCount.detailList[accuracy]" :length="4" />
+            <zero-padding :combo="score?.accuracyCount[accuracy]" :length="4" />
           </v-col>
         </v-row>
       </v-col>
       <v-col cols="8" sm="4">
-        <l-f-rate :late="15" :fast="1" :height="20" />
+        <l-f-rate
+          :late="score?.judgmentCount[Judgment.LATE]"
+          :fast="score?.judgmentCount[Judgment.FAST]"
+          :height="20"
+        />
+        <flick-label :count="score?.judgmentCount[Judgment.FLICK]" />
       </v-col>
     </v-row>
   </v-container>
@@ -31,7 +36,8 @@ import ZeroPadding from '@/components/atomic/ZeroPadding.vue';
 import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
 import ComboLabel from '@/components/atomic/ComboLabel.vue';
 import LFRate from '../atomic/LFRate.vue';
-import { AccuracyList } from '@/model/Score';
+import FlickLabel from '../atomic/FlickLabel.vue';
+import { AccuracyList, Judgment } from '@/model/Score';
 import { useScoreStore } from '@/stores/ScoreStore';
 import { DifficultyRank, DifficultyRankList } from '@/model/Game';
 

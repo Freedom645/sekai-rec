@@ -59,7 +59,7 @@ import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import MusicAutocomplete from '@/components/atomic/MusicAutocomplete.vue';
 import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
 import { DifficultyRankList, DifficultyRank as Difficulty } from '@/model/Game';
-import { AccuracyList, type AccuracyKeyValue, AccuracyCount, Accuracy } from '@/model/Score';
+import { AccuracyList, type AccuracyKeyValue, Accuracy, calcRankMatchScore } from '@/model/Score';
 import { useMusicStore } from '@/stores/MusicStore';
 import { watch } from 'vue';
 
@@ -102,7 +102,7 @@ const { musicList } = useMusicStore();
 const music = computed(() => musicList.find((music) => music.title === state.musicTitle));
 const difficulty = computed(() => music.value?.getDifficulty(state.difficulty));
 
-const rankMatchScore = computed(() => AccuracyCount.calcRankMatchScore(state.accuracyKeyValue));
+const rankMatchScore = computed(() => calcRankMatchScore(state.accuracyKeyValue));
 
 watch(
   () => ({ music: music.value, difficulty: difficulty.value }),

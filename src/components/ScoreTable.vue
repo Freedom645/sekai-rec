@@ -61,13 +61,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, defineEmits, type PropType, watch, computed } from 'vue';
+import { ref, defineEmits, type PropType, computed } from 'vue';
 import { useDisplay } from 'vuetify';
 import { VPagination, VSelect, VProgressLinear, VContainer } from 'vuetify/components';
 import { VDataTable } from 'vuetify/labs/VDataTable';
 import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import { useMusicStore } from '@/stores/MusicStore';
 import type { DifficultyRank as Difficulty } from '@/model/Game';
+import { calcRankMatchScore } from '@/model/Score';
 import type { FilterCondition } from '@/model/Filter';
 import { useScoreStore } from '@/stores/ScoreStore';
 
@@ -126,7 +127,7 @@ const scoreRecords: RowItem[] = scoreList
       return [];
     }
 
-    const rankScore = score.accuracyCount.rankMatchScore;
+    const rankScore = calcRankMatchScore(score.accuracyCount);
     const maxScore = diff.noteCount * 3;
 
     const row: RowItem = {
