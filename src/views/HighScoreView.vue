@@ -35,8 +35,8 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { VContainer, VRow, VCol, VBtn, VExpandTransition, VCard } from 'vuetify/components';
-import MusicFilter from '@/components/MusicFilter.vue';
-import ScoreTable, { type ScoreType } from '@/components/ScoreTable.vue';
+import MusicFilter from '@/components/ScoreTable/MusicFilter.vue';
+import ScoreTable, { type ScoreType } from '@/components/ScoreTable/ScoreTable.vue';
 import HighScoreModal from '@/components/ScoreDetail/HighScoreModal.vue';
 import { DifficultyRank } from '@/model/Game';
 import { emptyCondition, type FilterCondition } from '@/model/Filter';
