@@ -53,7 +53,7 @@
           </v-row>
         </v-container>
       </v-window-item>
-      <v-window-item template v-for="(url, index) in urls" :key="url">
+      <v-window-item v-for="(url, index) in urls" :key="url">
         <v-container>
           <v-row>
             <v-col cols="12" md="6">
@@ -85,6 +85,7 @@
                   :accuracy-count="analyzeResults[index].accuracyCount"
                   :judgment-count="analyzeResults[index].judgmentCount"
                   :combo="analyzeResults[index].combo"
+                  openIfError
                 />
               </template>
             </v-col>
@@ -205,6 +206,7 @@ watch(files, async (input) => {
     progress.correct = 100;
 
     progress.state = 'completed';
+    window.value = 1;
   } catch (e) {
     if (e instanceof Error) {
       ocrText.value = e.message;
