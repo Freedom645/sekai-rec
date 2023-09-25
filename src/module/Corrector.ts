@@ -1,10 +1,10 @@
 import { editONP } from './EditDistance';
 import type { Music } from '@/model/Game';
-import { Accuracy, Judgment, JudgmentList, type ScoreData } from '@/model/Score';
+import { Accuracy, JudgmentList, type ScoreData } from '@/model/Score';
 
 export const searchFuzzy = (str: string, list: Music[]) => {
   return list
-    .map((music) => ({ distance: editONP(str, music.title), title: music.title }))
+    .map((music) => ({ distance: editONP(str, music.title), title: music.title, musicId: music.id }))
     .sort((left, right) => right.distance - left.distance);
 };
 
