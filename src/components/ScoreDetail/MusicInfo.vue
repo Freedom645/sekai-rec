@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-row>
-      <v-col cols="5" sm="4" md="3">
+      <v-col cols="4" sm="3" md="4">
         <v-responsive :aspect-ratio="1">
           <v-img :src="jacketSrc" />
         </v-responsive>

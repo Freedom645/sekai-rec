@@ -68,6 +68,15 @@ function createByImage(img: HTMLImageElement): { canvas: HTMLCanvasElement; ctx:
 
   return { canvas, ctx };
 }
+const convertImageElement = async (url: string): Promise<HTMLImageElement> =>
+  await new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = document.createElement('img');
+    image.onload = () => resolve(image);
+    image.onerror = (e) => reject(e);
+    if (url !== undefined) {
+      image.src = url;
+    }
+  });
 
 async function setSrc(dist: HTMLImageElement, canvas: HTMLCanvasElement) {
   await new Promise<void>((resolve, reject) => {
@@ -78,14 +87,12 @@ async function setSrc(dist: HTMLImageElement, canvas: HTMLCanvasElement) {
 }
 
 export default {
-  async convertThresholdImage(img: HTMLImageElement, dist?: HTMLImageElement): Promise<string> {
+  async convertThresholdImage(url: string): Promise<string> {
+    const img = await convertImageElement(url);
     const { canvas, ctx } = createByImage(img);
     const imagedata = ctx.getImageData(0, 0, img.width, img.height);
     threshold(imagedata);
     ctx.putImageData(imagedata, 0, 0);
-    if (dist !== undefined) {
-      await setSrc(dist, canvas);
-    }
     return canvas.toDataURL();
   },
 };
