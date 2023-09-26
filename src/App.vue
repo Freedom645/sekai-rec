@@ -18,12 +18,13 @@
     </v-navigation-drawer>
 
     <v-main>
-      <v-container class="main-container px-0">
+      <v-container class="main-container pa-0">
         <RouterView />
-        <confirm-dialog />
-        <progress-overlay />
       </v-container>
     </v-main>
+
+    <confirm-dialog />
+    <progress-overlay />
   </v-app>
 </template>
 
@@ -55,10 +56,8 @@ const sideMenuList = [
 
 <style scoped>
 .main-container {
-  justify-self: center;
   max-width: 1200px;
-  height: 100%;
-
   background-color: var(--color-background);
+  min-height: calc(100vh - 64px);
 }
 </style>
