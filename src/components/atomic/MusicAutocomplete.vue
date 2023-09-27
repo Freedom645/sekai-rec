@@ -2,7 +2,7 @@
   <v-autocomplete
     label="楽曲名"
     :model-value="props.modelValue"
-    @update:model-value="(event: string) => emits('update:modelValue', event ?? '')"
+    @update:model-value="updateInput($event)"
     :items="state.musics"
     :rules="rules"
     @update:search="onSearchInput"
@@ -25,7 +25,10 @@ const props = defineProps({
   },
   rules: { type: Array<(value: string) => boolean | string>, default: () => [] },
 });
-const emits = defineEmits<{ (e: 'update:modelValue', text: string): void }>();
+const emits = defineEmits<{
+  (e: 'update:modelValue', text: string): void;
+  (e: 'changeMusic', musicId: number | undefined): void;
+}>();
 
 const state = reactive({
   musics: [] as string[],
@@ -51,5 +54,10 @@ const onSearchInput = (searchName: string) => {
       .sort();
     state.isSearching = false;
   }, 500);
+};
+
+const updateInput = (input: string) => {
+  emits('update:modelValue', input ?? '');
+  emits('changeMusic', musicList.find((music) => music.title === input)?.id);
 };
 </script>

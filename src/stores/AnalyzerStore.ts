@@ -40,10 +40,19 @@ export const useAnalyzerStore = defineStore('analyzer', {
     completedData: {
       urls: [] as string[],
       scoreData: [] as ScoreData[],
+      isUnregister: [] as boolean[],
     },
   }),
   getters: {
     getProgress: (state) => state.progress,
+    getScoreData:
+      (state) =>
+      (index: number): ScoreData | undefined =>
+        state.completedData.scoreData[index],
+    getUrlData:
+      (state) =>
+      (index: number): string | undefined =>
+        state.completedData.urls[index],
   },
   actions: {
     setSettings(settings: Partial<Settings>): void {
@@ -59,9 +68,10 @@ export const useAnalyzerStore = defineStore('analyzer', {
       this.completedData.urls.forEach((file) => URL.revokeObjectURL(file));
       this.completedData.urls.splice(0);
       this.completedData.scoreData.splice(0);
+      this.completedData.isUnregister.splice(0);
     },
-    proceedOcrStep(key?: OcrStepKey): void {
-      const next = OcrSteps.findIndex((step) => step.key === (key ?? this.progress.state.key)) + (key ? 0 : 1);
+    proceedOcrStep(nextKey?: OcrStepKey): void {
+      const next = OcrSteps.findIndex((step) => step.key === (nextKey ?? this.progress.state.key)) + (nextKey ? 0 : 1);
       if (next <= 0 || OcrSteps.length <= next) {
         throw new Error('Implementation error.');
       }
@@ -160,6 +170,12 @@ export const useAnalyzerStore = defineStore('analyzer', {
         urls.splice(0);
         return this.progress.errorText;
       }
+    },
+    fixScoreData(index: number, scoreData: ScoreData): void {
+      if (index < 0 || this.completedData.scoreData.length <= index) {
+        throw new Error('Implementation error.');
+      }
+      this.completedData.scoreData[index] = scoreData;
     },
   },
 });

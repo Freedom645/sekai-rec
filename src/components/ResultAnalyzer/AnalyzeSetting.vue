@@ -12,9 +12,11 @@
         />
       </v-col>
     </v-row>
-    <v-row justify="end">
-      <v-col cols="4" md="2">
-        <v-btn @click="emits('submit', settings)">実行</v-btn>
+    <v-row justify="center">
+      <v-col cols="12" md="10" class="d-flex justify-end">
+        <v-btn color="primary" :disabled="(settings.files?.length ?? 0) === 0" @click="emits('submit', settings)">
+          実行
+        </v-btn>
       </v-col>
     </v-row>
   </v-container>
