@@ -88,15 +88,8 @@ import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import MusicAutocomplete from '@/components/atomic/MusicAutocomplete.vue';
 import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
 import ScoreDataChecker from '@/components/DataChecker/ScoreDataChecker.vue';
-import { DifficultyRankList, DifficultyRank as Difficulty } from '@/model/Game';
-import {
-  AccuracyList,
-  Accuracy,
-  type AccuracyCount,
-  type JudgmentCount,
-  emptyScoreData,
-  cloneScoreData,
-} from '@/model/Score';
+import { DifficultyRankList } from '@/model/Game';
+import { AccuracyList, type JudgmentCount, emptyScoreData, cloneScoreData } from '@/model/Score';
 import { useMusicStore } from '@/stores/MusicStore';
 
 const ScoreDetailInputs: Array<{ name: string; key: keyof JudgmentCount }> = [
