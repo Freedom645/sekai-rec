@@ -3,7 +3,7 @@
     <template v-slot:default>
       <v-card :title="dialogText.title">
         <v-card-text>
-          {{ dialogText.text }}
+          <span v-html="dialogText.text"></span>
         </v-card-text>
 
         <v-card-actions>

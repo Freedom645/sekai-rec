@@ -98,7 +98,7 @@ const setupScheduler = async () => {
   for (let i = 0; i < 1; i++) {
     tasks.push(addTitleWorker());
   }
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 2; i++) {
     tasks.push(addScoreWorker());
   }
 

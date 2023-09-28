@@ -27,6 +27,7 @@ import AnalyzeSetting, { type Settings } from '@/components/ResultAnalyzer/Analy
 import AnalyzeProgress from '@/components/ResultAnalyzer/AnalyzeProgress.vue';
 import AnalyzeResult from '@/components/ResultAnalyzer/AnalyzeResult.vue';
 import { useAnalyzerStore } from '@/stores/AnalyzerStore';
+import { useConfirmDialog } from '@/composables/useConfirmDialog';
 
 const {
   setSettings,
@@ -35,11 +36,12 @@ const {
   completedData: { scoreData },
 } = useAnalyzerStore();
 
+const { notice } = useConfirmDialog();
+
 const stepperItems = [
   { title: '1. 設定', value: 0, rules: [() => true], component: AnalyzeSetting },
   { title: '2. 解析', value: 1, rules: [() => true], component: AnalyzeProgress },
   { title: '3. 結果確認', value: 2, rules: [() => errorText === ''], component: AnalyzeResult },
-  { title: '4. 修正', value: 3, rules: [() => true], component: AnalyzeResult },
 ];
 
 const step = ref(0);
@@ -50,9 +52,10 @@ const submitSettings = async (arg: Settings) => {
   setSettings(arg);
   const errorText = await startAnalyzing();
   if (errorText !== '') {
-    console.error(errorText);
-  } else {
-    step.value = 2;
+    notice({ title: 'エラー', text: `解析中にエラーが発生しました。エラーメッセージ：${errorText}` });
+    return;
   }
+
+  step.value = 2;
 };
 </script>
