@@ -14,7 +14,7 @@
     </v-row>
     <v-row justify="center">
       <v-col cols="12" md="10" class="d-flex justify-end">
-        <v-btn color="primary" :disabled="(settings.files?.length ?? 0) === 0" @click="emits('submit', settings)">
+        <v-btn color="primary" :disabled="shortageSettings || isAnalyzing" @click="emits('submit', settings)">
           実行
         </v-btn>
       </v-col>
@@ -23,16 +23,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { VContainer, VRow, VCol, VFileInput, VBtn } from 'vuetify/components';
+import { useAnalyzerStore } from '@/stores/AnalyzerStore';
 
 export interface Settings {
   files: File[] | undefined;
 }
+
+const { progress } = useAnalyzerStore();
 
 const emits = defineEmits<{ (e: 'submit', settings: Settings): void }>();
 
 const settings = ref({
   files: undefined as File[] | undefined,
 } as Settings);
+
+const shortageSettings = computed(() => (settings.value.files?.length ?? 0) === 0);
+const isAnalyzing = computed(() => progress.state.key !== 'not-start' && progress.state.key !== 'completed');
 </script>
