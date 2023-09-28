@@ -73,8 +73,8 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" @click="submit((value) => (isActive.value = value))">確定</v-btn>
-          <v-btn @click="isActive.value = false">キャンセル</v-btn>
+          <v-btn color="primary" variant="elevated" @click="submit((value) => (isActive.value = value))">確定</v-btn>
+          <v-btn variant="elevated" @click="isActive.value = false">キャンセル</v-btn>
         </v-card-actions>
       </v-card>
     </template>
