@@ -56,7 +56,7 @@ const sideMenuList = [
 
 <style scoped>
 .main-container {
-  max-width: 1200px;
+  max-width: 1280px;
   background-color: var(--color-background);
   min-height: calc(100vh - 64px);
 }

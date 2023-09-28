@@ -3,10 +3,22 @@
     <h2>ハイスコア一覧</h2>
     <v-row class="mt-5">
       <v-col>
-        <v-btn class="mr-3" elevation="4" prepend-icon="mdi-filter-multiple" @click="() => (showFilter = !showFilter)">
+        <v-btn
+          class="mr-3"
+          color="secondary"
+          elevation="4"
+          prepend-icon="mdi-filter-multiple"
+          @click="() => (showFilter = !showFilter)"
+        >
           フィルタ
         </v-btn>
-        <v-btn class="mr-3" elevation="4" prepend-icon="mdi-swap-horizontal-bold" @click="clickChangeScoreDisplay()">
+        <v-btn
+          class="mr-3"
+          color="secondary"
+          elevation="4"
+          prepend-icon="mdi-swap-horizontal-bold"
+          @click="clickChangeScoreDisplay()"
+        >
           スコア切替
         </v-btn>
       </v-col>
