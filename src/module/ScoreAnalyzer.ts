@@ -5,7 +5,7 @@ import { Element } from '@/model/Analyze';
 
 export const PositionData = {
   ipadPro: {
-    [Element.TITLE]: new Rectangle({ x: 200, y: 15 }, { w: 1000, h: 60 }),
+    [Element.TITLE]: new Rectangle({ x: 200, y: 15 }, { w: 700, h: 60 }),
     [Element.DIFFICULT]: new Rectangle({ x: 212, y: 104 }, { w: 212, h: 48 }),
     [Element.COMBO]: new Rectangle({ x: 270, y: 1020 }, { w: 500, h: 170 }),
     [Element.PERFECT]: new Rectangle({ x: 1110, y: 950 }, { w: 140, h: 50 }),
@@ -43,7 +43,7 @@ export const analyze = async (
             titleScheduler.addJob('recognize', img, { rectangle: rect }).then((res) => ({
               index: index,
               key: key,
-              text: res.data.text,
+              text: res.data.text.replace(/\r?\n$/, ''),
             }))
           );
         });
@@ -54,7 +54,7 @@ export const analyze = async (
           scoreScheduler.addJob('recognize', img, { rectangle: rect }).then((res) => ({
             index: index,
             key: key,
-            text: res.data.text,
+            text: res.data.text.replace(/\r?\n$/, ''),
           }))
         );
       });
@@ -98,7 +98,7 @@ const setupScheduler = async () => {
   for (let i = 0; i < 1; i++) {
     tasks.push(addTitleWorker());
   }
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 2; i++) {
     tasks.push(addScoreWorker());
   }
 

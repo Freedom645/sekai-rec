@@ -37,9 +37,10 @@ import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
 import ComboLabel from '@/components/atomic/ComboLabel.vue';
 import LFRate from '../atomic/LFRate.vue';
 import FlickLabel from '../atomic/FlickLabel.vue';
-import { AccuracyList, Judgment } from '@/model/Score';
+import { AccuracyList, Judgment, type ScoreData } from '@/model/Score';
 import { useScoreStore } from '@/stores/ScoreStore';
-import { DifficultyRank, DifficultyRankList } from '@/model/Game';
+import type { DifficultyRank } from '@/model/Game';
+import type { PropType } from 'vue';
 
 const props = defineProps({
   musicId: {
@@ -47,15 +48,15 @@ const props = defineProps({
     required: true,
   },
   difficulty: {
-    type: String,
+    type: String as PropType<DifficultyRank>,
     required: true,
+  },
+  scoreData: {
+    type: Object as PropType<ScoreData>,
   },
 });
 
 const { findScore } = useScoreStore();
 
-const difficulty = computed(
-  () => DifficultyRankList.find((rank) => rank === props.difficulty) ?? DifficultyRank.MASTER
-);
-const score = computed(() => findScore(props.musicId, difficulty.value));
+const score = computed(() => props.scoreData ?? findScore(props.musicId, props.difficulty));
 </script>

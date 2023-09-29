@@ -19,7 +19,7 @@ defineProps({
 </script>
 <style scoped>
 .common {
-  font-size: 1.2em;
+  font-size: 1.4em;
   font-weight: 1000;
 }
 .combo-name {
