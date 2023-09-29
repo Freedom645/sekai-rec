@@ -12,6 +12,11 @@
         />
       </v-col>
     </v-row>
+    <v-row>
+      <v-col>
+        <position-preview :file="settings.files?.[0]" />
+      </v-col>
+    </v-row>
     <v-row justify="center">
       <v-col cols="12" md="10" class="d-flex justify-end">
         <v-btn color="primary" :disabled="shortageSettings || isAnalyzing" @click="emits('submit', settings)">
@@ -25,6 +30,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { VContainer, VRow, VCol, VFileInput, VBtn } from 'vuetify/components';
+import PositionPreview from './PositionPreview.vue';
 import { useAnalyzerStore } from '@/stores/AnalyzerStore';
 
 export interface Settings {
