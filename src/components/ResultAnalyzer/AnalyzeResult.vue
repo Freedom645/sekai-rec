@@ -61,7 +61,10 @@
             <v-row>
               <v-col cols="12" md="6">
                 <v-responsive :aspect-ratio="16 / 9">
-                  <v-img :src="url" />
+                  <v-img
+                    :src="showGrayscale ? completedData.thresholdUrls[index] : url"
+                    @click="showGrayscale = !showGrayscale"
+                  />
                 </v-responsive>
               </v-col>
               <v-col>
@@ -124,6 +127,7 @@ const { show, hidden } = useProgressOverlay();
 
 const window = ref(0);
 const editorIsOpen = ref(false);
+const showGrayscale = ref(false);
 
 const fixScoreData = () => {
   editorIsOpen.value = true;
