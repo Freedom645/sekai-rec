@@ -80,7 +80,7 @@ export default {
     ctx.beginPath();
     positions.forEach((r) => ctx.rect(r.x, r.y, r.w, r.h));
     ctx.strokeStyle = 'red';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.stroke();
 
     return canvas.toDataURL();

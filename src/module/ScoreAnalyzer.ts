@@ -1,24 +1,8 @@
 import { createWorker, createScheduler, PSM } from 'tesseract.js';
 import { convertTesseractRect } from './ImageProcessor';
 import type { AnalyzeRecord } from '@/model/Analyze';
-import { Element } from '@/model/Analyze';
-import { useAnalyzerSettingsStore } from '@/stores/AnalyzerSettingsStore';
-
-// export const PositionData = {
-//   ipadPro: {
-//     [Element.TITLE]: new Rectangle({ x: 200, y: 15 }, { w: 700, h: 60 }),
-//     [Element.DIFFICULT]: new Rectangle({ x: 212, y: 104 }, { w: 212, h: 48 }),
-//     [Element.COMBO]: new Rectangle({ x: 270, y: 1020 }, { w: 500, h: 170 }),
-//     [Element.PERFECT]: new Rectangle({ x: 1110, y: 950 }, { w: 140, h: 50 }),
-//     [Element.GREAT]: new Rectangle({ x: 1110, y: 1014 }, { w: 140, h: 50 }),
-//     [Element.GOOD]: new Rectangle({ x: 1110, y: 1080 }, { w: 140, h: 50 }),
-//     [Element.BAD]: new Rectangle({ x: 1110, y: 1146 }, { w: 140, h: 50 }),
-//     [Element.MISS]: new Rectangle({ x: 1110, y: 1210 }, { w: 140, h: 50 }),
-//     [Element.LATE]: new Rectangle({ x: 1312, y: 1074 }, { w: 120, h: 38 }),
-//     [Element.FAST]: new Rectangle({ x: 1446, y: 1074 }, { w: 120, h: 38 }),
-//     [Element.FLICK]: new Rectangle({ x: 1456, y: 1150 }, { w: 110, h: 36 }),
-//   } as ImagePosition,
-// } as const;
+import { Element, ElementList } from '@/model/Analyze';
+import type { Preset } from '@/stores/AnalyzerSettingsStore';
 
 interface OcrResult {
   index: number;
@@ -28,21 +12,21 @@ interface OcrResult {
 
 export const analyze = async (
   data: string[],
+  preset: Preset,
   progress?: (state: 'setup' | 'ocr', value: number) => void
 ): Promise<AnalyzeRecord[]> => {
   progress?.('setup', 0);
   const { titleScheduler, scoreScheduler } = await setupScheduler();
 
-  const { getPreset } = useAnalyzerSettingsStore();
-  const PositionData = getPreset('ipadPro');
-  if (PositionData === undefined) {
+  if (preset === undefined) {
     throw new Error('Implementation Error.');
   }
   try {
     progress?.('ocr', 0);
     const task: Array<Promise<OcrResult>> = [];
-    for (const key of Object.keys(PositionData) as Element[]) {
-      const rect = convertTesseractRect(PositionData.position[key]);
+    for (const key of ElementList) {
+      console.log(key);
+      const rect = convertTesseractRect(preset.position[key]);
       if (key === Element.TITLE || key === Element.DIFFICULT) {
         data.forEach((img, index) => {
           task.push(
