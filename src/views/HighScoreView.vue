@@ -3,10 +3,22 @@
     <h2>ハイスコア一覧</h2>
     <v-row class="mt-5">
       <v-col>
-        <v-btn class="mr-3" elevation="4" prepend-icon="mdi-filter-multiple" @click="() => (showFilter = !showFilter)">
+        <v-btn
+          class="mr-3"
+          color="secondary"
+          elevation="4"
+          prepend-icon="mdi-filter-multiple"
+          @click="() => (showFilter = !showFilter)"
+        >
           フィルタ
         </v-btn>
-        <v-btn class="mr-3" elevation="4" prepend-icon="mdi-swap-horizontal-bold" @click="clickChangeScoreDisplay()">
+        <v-btn
+          class="mr-3"
+          color="secondary"
+          elevation="4"
+          prepend-icon="mdi-swap-horizontal-bold"
+          @click="clickChangeScoreDisplay()"
+        >
           スコア切替
         </v-btn>
       </v-col>
@@ -35,8 +47,8 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { VContainer, VRow, VCol, VBtn, VExpandTransition, VCard } from 'vuetify/components';
-import MusicFilter from '@/components/MusicFilter.vue';
-import ScoreTable, { type ScoreType } from '@/components/ScoreTable.vue';
+import MusicFilter from '@/components/ScoreTable/MusicFilter.vue';
+import ScoreTable, { type ScoreType } from '@/components/ScoreTable/ScoreTable.vue';
 import HighScoreModal from '@/components/ScoreDetail/HighScoreModal.vue';
 import { DifficultyRank } from '@/model/Game';
 import { emptyCondition, type FilterCondition } from '@/model/Filter';

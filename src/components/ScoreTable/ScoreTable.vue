@@ -26,10 +26,10 @@
           <span v-if="!xs">{{ Math.round(props.item.raw.scoreRate * 100) / 100 }}%</span>
         </v-progress-linear>
       </template>
-      <template v-if="scoreType === 'rankMatch'">
+      <template v-else-if="scoreType === 'rankMatch'">
         {{ props.item.raw.score }}
       </template>
-      <template v-if="scoreType === 'ap'">
+      <template v-else-if="scoreType === 'ap'">
         <template v-if="props.item.raw.score - props.item.raw.maxScore === 0">AP</template>
         <template v-else>
           <span v-if="xs">{{ props.item.raw.score - props.item.raw.maxScore }}</span>

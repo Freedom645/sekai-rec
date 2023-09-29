@@ -61,9 +61,9 @@
         />
       </v-col>
     </v-row>
-    <v-row justify="end">
-      <v-col cols="3" sm="2" md="1">
-        <v-btn @click="registerScore()">登録</v-btn>
+    <v-row>
+      <v-col cols="12" class="d-flex justify-end">
+        <v-btn color="primary" @click="registerScore()">登録</v-btn>
       </v-col>
     </v-row>
   </v-container>

@@ -16,8 +16,22 @@ const vuetify = createVuetify({
     },
   },
   theme: {
-    defaultTheme: 'dark',
+    defaultTheme: 'main',
     variations: false,
+    themes: {
+      main: {
+        dark: true,
+        colors: {
+          primary: '#ff80fb',
+          secondary: '#80faff',
+          accent: '#80ffc3',
+          error: '#ff8480',
+          warning: '#ff5722',
+          info: '#03a9f4',
+          success: '#4caf50',
+        },
+      },
+    },
   },
 });
 

@@ -1,4 +1,4 @@
-import type { DifficultyRank } from './Game';
+import { DifficultyRank } from './Game';
 
 export const Accuracy = {
   PERFECT: 'perfect',
@@ -60,3 +60,31 @@ export interface ScoreData {
   accuracyCount: AccuracyCount;
   judgmentCount: JudgmentCount;
 }
+
+export const emptyScoreData = () => ({
+  musicId: 1,
+  difficulty: DifficultyRank.MASTER,
+  combo: 0,
+  accuracyCount: {
+    perfect: 0,
+    great: 0,
+    good: 0,
+    bad: 0,
+    miss: 0,
+  },
+  judgmentCount: {
+    late: 0,
+    fast: 0,
+    flick: 0,
+  },
+});
+
+export const cloneScoreData = (src: ScoreData): ScoreData => ({
+  ...src,
+  accuracyCount: {
+    ...src.accuracyCount,
+  },
+  judgmentCount: {
+    ...src.judgmentCount,
+  },
+});

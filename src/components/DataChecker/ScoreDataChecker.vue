@@ -1,5 +1,5 @@
 <template>
-  <v-expansion-panels>
+  <v-expansion-panels :model-value="hasError && openIfError ? [0] : []">
     <v-expansion-panel>
       <v-expansion-panel-title disable-icon-rotate>
         データ検証
@@ -68,6 +68,10 @@ const props = defineProps({
   },
   judgmentCount: {
     type: Object as PropType<JudgmentCount>,
+  },
+  openIfError: {
+    type: Boolean,
+    default: false,
   },
 });
 
