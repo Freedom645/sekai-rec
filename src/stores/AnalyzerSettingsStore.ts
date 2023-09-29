@@ -6,6 +6,7 @@ import type { Size } from '@/module/ImageProcessor';
 export interface Preset {
   key: string;
   name: string;
+  threshold: number;
   size: Size;
   position: ImagePosition;
 }
@@ -22,6 +23,7 @@ const generateDefaultData = () => {
     return {
       key: key,
       name: preset.name,
+      threshold: preset.threshold,
       size: preset.size,
       position: position,
     } as Preset;

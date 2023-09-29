@@ -1,6 +1,7 @@
 {
   "v3_iPadPro11": {
     "name": "[ver 3] ipadPro 11インチ",
+    "threshold": 160,
     "title": {
       "x": 460,
       "y": 40,
@@ -76,6 +77,7 @@
   },
   "v2_iPadPro11": {
     "name": "[ver 2] ipadPro 11インチ",
+    "threshold": 200,
     "title": {
       "x": 200,
       "y": 15,
@@ -151,6 +153,7 @@
   },
   "v2_iPadPro11-RankMatch": {
     "name": "[ver 2] ipadPro 11インチ（ランクマッチ）",
+    "threshold": 200,
     "title": {
       "x": 1070,
       "y": 175,
@@ -226,6 +229,7 @@
   },
   "v2_iPadPro11-challenge": {
     "name": "[ver 2] ipadPro 11インチ（チャレンジ）",
+    "threshold": 200,
     "title": {
       "x": 200,
       "y": 15,

@@ -42,6 +42,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
     },
     completedData: {
       urls: [] as string[],
+      thresholdUrls: [] as string[],
       scoreData: [] as ScoreData[],
       isUnregister: [] as boolean[],
     },
@@ -71,6 +72,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
       this.progress.errorText = '';
       this.completedData.urls.forEach((file) => URL.revokeObjectURL(file));
       this.completedData.urls.splice(0);
+      this.completedData.thresholdUrls.splice(0);
       this.completedData.scoreData.splice(0);
       this.completedData.isUnregister.splice(0);
     },
@@ -81,13 +83,13 @@ export const useAnalyzerStore = defineStore('analyzer', {
       }
       this.progress.state = OcrSteps[next];
     },
-    async convertThresholdUrls(urls: string[]): Promise<string[]> {
+    async convertThresholdUrls(urls: string[], thresholdValue: number): Promise<string[]> {
       this.progress.threshold = 0;
 
       let completed = 0;
       const thresholdUrls = await Promise.all(
         urls.map((url) =>
-          ImageProcessor.convertThresholdImage(url).then((res) => {
+          ImageProcessor.convertThresholdImage(url, thresholdValue).then((res) => {
             completed++;
             this.progress.threshold = (completed * 100) / urls.length;
             return res;
@@ -146,7 +148,8 @@ export const useAnalyzerStore = defineStore('analyzer', {
       try {
         // 二値化
         this.proceedOcrStep('threshold');
-        const thresholdUrls = await this.convertThresholdUrls(urls);
+        const thresholdUrls = await this.convertThresholdUrls(urls, this.settings.preset.threshold);
+        this.completedData.thresholdUrls.push(...thresholdUrls);
 
         // OCRセットアップ ～ 解析
         this.proceedOcrStep('init');

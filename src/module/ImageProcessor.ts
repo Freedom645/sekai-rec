@@ -65,11 +65,11 @@ async function setSrc(dist: HTMLImageElement, canvas: HTMLCanvasElement) {
 }
 
 export default {
-  async convertThresholdImage(url: string): Promise<string> {
+  async convertThresholdImage(url: string, thresholdValue: number): Promise<string> {
     const img = await convertImageElement(url);
     const { canvas, ctx } = createByImage(img);
     const imagedata = ctx.getImageData(0, 0, img.width, img.height);
-    threshold(imagedata);
+    threshold(imagedata, thresholdValue);
     ctx.putImageData(imagedata, 0, 0);
     return canvas.toDataURL();
   },
