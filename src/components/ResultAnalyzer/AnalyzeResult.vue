@@ -1,13 +1,26 @@
 <template>
   <v-container class="pa-0">
     <v-row justify="center">
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="d-flex flex-wrap align-center justify-space-evenly">
         <v-pagination
           :model-value="window + 1"
           @update:model-value="window = $event - 1"
           :length="completedData.urls.length"
           :total-visible="4"
         />
+        <v-tooltip text="警告の出ているリザルトまでスキップします。" open-delay="600">
+          <template v-slot:activator="{ props }">
+            <v-btn
+              icon="mdi-skip-next"
+              v-bind="props"
+              density="comfortable"
+              variant="outlined"
+              color="warning"
+              :disabled="illegalityDataIndex.length === 0"
+              @click="nextIllegalityData()"
+            />
+          </template>
+        </v-tooltip>
       </v-col>
       <v-col cols="12" md="6">
         <v-row>
@@ -17,8 +30,9 @@
               prepend-icon="mdi-note-edit"
               @click="fixScoreData()"
               :disabled="!!completedData.isUnregister[window]"
-              >スコア修正</v-btn
             >
+              スコア修正
+            </v-btn>
             <v-btn color="primary" @click="complete()">完了</v-btn>
             <v-sheet>
               <v-tooltip
@@ -88,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { VImg, VPagination } from 'vuetify/components';
 import MusicInfo from '@/components/ScoreDetail/MusicInfo.vue';
 import ScoreDetail from '@/components/ScoreDetail/ScoreDetail.vue';
@@ -115,18 +129,38 @@ const fixScoreData = () => {
   editorIsOpen.value = true;
 };
 
+const illegalityDataIndex = computed(() =>
+  completedData.scoreData.flatMap((data, index) => {
+    const music = findMusic(data.musicId);
+    if (music === undefined) {
+      return index;
+    }
+    if (Object.values(Checker).every((v) => v.validator(music, data) === '')) {
+      return [];
+    }
+    return index;
+  })
+);
+
+const nextIllegalityData = () => {
+  if (illegalityDataIndex.value.length === 0) {
+    return;
+  }
+  const next = illegalityDataIndex.value.findIndex((i) => window.value < i);
+  if (next === -1) {
+    window.value = illegalityDataIndex.value[0];
+    return;
+  }
+  window.value = illegalityDataIndex.value[next];
+};
+
 const complete = async () => {
   const registerCount = completedData.urls.filter((_, index) => !completedData.isUnregister[index]).length;
   const isUnregisterCount = completedData.urls.filter((_, index) => !!completedData.isUnregister[index]).length;
 
-  const illegalityCount = completedData.scoreData.filter((data) => {
-    const music = findMusic(data.musicId);
-    return !music || !Object.values(Checker).every((v) => v.validator(music, data) === '');
-  }).length;
-
   const warnings = [
     `<li>登録曲数：${registerCount}曲 (除外数：${isUnregisterCount}曲)</li>`,
-    `<li>データ不正：${illegalityCount}曲</li>`,
+    `<li>データ不正：${illegalityDataIndex.value.length}曲</li>`,
   ];
 
   const message = `<p>スコアを登録します。よろしいですか？</p><br><div><ul>${warnings.join('')}</ul></div>`;
