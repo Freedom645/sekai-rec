@@ -13,14 +13,14 @@ const router = createRouter({
       meta: { name: 'ホーム' },
     },
     {
-      path: '/register',
+      path: '/register/manual',
       component: ScoreRegisterView,
       meta: { name: 'スコア登録' },
     },
     {
-      path: '/register-image',
+      path: '/register/image',
       component: ScoreAnalyzerView,
-      meta: { name: 'スコア解析' },
+      meta: { name: 'スコア登録' },
     },
     {
       path: '/score',
