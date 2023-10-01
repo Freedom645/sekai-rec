@@ -3,6 +3,7 @@ import HomeView from '@/views/HomeView.vue';
 import ScoreAnalyzerView from '@/views/ScoreAnalyzerView.vue';
 import ScoreRegisterView from '@/views/ScoreRegisterView.vue';
 import HighScoreView from '@/views/HighScoreView.vue';
+import SettingsView from '@/views/SettingsView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,6 +27,11 @@ const router = createRouter({
       path: '/score',
       component: HighScoreView,
       meta: { name: 'ハイスコア一覧' },
+    },
+    {
+      path: '/settings',
+      component: SettingsView,
+      meta: { name: '設定' },
     },
   ],
 });

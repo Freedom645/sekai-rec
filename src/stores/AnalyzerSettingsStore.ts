@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import Presets from '@/assets/settings/Presets.json';
 import { ElementList, type ImagePosition } from '@/model/Analyze';
-import type { Size } from '@/module/ImageProcessor';
+import type { Rectangle, Size } from '@/module/ImageProcessor';
 
 export interface Preset {
   key: string;
@@ -10,6 +10,24 @@ export interface Preset {
   size: Size;
   position: ImagePosition;
 }
+
+export const generateEmptyRectangle = (): Rectangle => ({
+  x: 0,
+  y: 0,
+  w: 1,
+  h: 1,
+});
+
+export const generateEmptyPreset = (): Preset => ({
+  key: '',
+  name: '',
+  threshold: 200,
+  size: { w: 1, h: 1 },
+  position: ElementList.reduce(
+    (obj, curr) => Object.assign(obj, { [curr]: generateEmptyRectangle() }),
+    {} as ImagePosition
+  ),
+});
 
 const generateDefaultData = () => {
   return (Object.keys(Presets) as (keyof typeof Presets)[]).map((key) => {

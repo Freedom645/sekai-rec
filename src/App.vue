@@ -91,6 +91,7 @@ const sideMenuList: (MenuGroup | MenuItem)[] = [
     ],
   },
   { type: 'item', title: 'ハイスコア一覧', path: '/score', prependIcon: 'mdi-file-document-multiple' },
+  { type: 'item', title: '設定', path: '/settings', prependIcon: 'mdi-cog' },
 ];
 
 function isMenuGroup(arg: any): arg is MenuGroup {
