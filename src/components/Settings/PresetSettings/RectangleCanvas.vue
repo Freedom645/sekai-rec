@@ -21,46 +21,49 @@ const props = defineProps({
   rect: { type: Object as PropType<Rectangle> },
   strokeWidth: { type: Number, default: () => 2 },
   strokeColor: { type: String, default: () => 'red' },
-  lineJoin: { type: String as PropType<CanvasLineJoin>, default: () => 'bevel' },
-  lineCap: { type: String as PropType<CanvasLineCap>, default: () => 'butt' },
+  lineJoin: { type: String as PropType<'bevel' | 'miter' | 'round'>, default: () => 'bevel' },
+  lineCap: { type: String as PropType<'round' | 'butt' | 'square'>, default: () => 'butt' },
   backgroundColor: { type: String, default: () => '#FFFFFFFF' },
   readonly: { type: Boolean },
 });
 
 const emits = defineEmits<{ (e: 'update:rect', rect: Rectangle): void }>();
 
+const redraw = () => {
+  const ctx = getContext();
+  clear(ctx);
+  if (props.rect !== undefined) {
+    drawRectangle(ctx, props.rect);
+  }
+};
+
+defineExpose({ redraw });
+
 watch(
   () => ({ width: props.width, height: props.height, nativeSize: props.nativeSize, rect: props.rect }),
-  (value) => {
-    console.log('watch', value);
-    clear();
-    if (value.rect !== undefined) {
-      drawRectangle(value.rect);
-    }
+  () => {
+    redraw();
   },
   { deep: true }
 );
 
 const state = {
-  context: undefined as CanvasRenderingContext2D | undefined,
   coordinates: [] as Point[],
 };
 
 const getContext = (): CanvasRenderingContext2D => {
-  if (state.context === undefined) {
-    const canvas: HTMLCanvasElement = <HTMLCanvasElement>document.querySelector('#' + props.canvasId);
-    state.context = canvas.getContext('2d') ?? undefined;
-  }
-  if (state.context === undefined) {
+  const canvas = document.querySelector('#' + props.canvasId) as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d');
+  if (ctx == null) {
     throw new Error('CanvasRenderingContext2D is undefined.');
   }
-  return state.context;
+  return ctx;
 };
 
 const getCoordinates = (event: MouseEvent | TouchEvent): Point => {
   const isTouchEvent = (value: MouseEvent | TouchEvent): value is TouchEvent => 'touches' in value;
-  if (isTouchEvent(event) && event.touches.length > 0) {
-    const canvas: HTMLCanvasElement = <HTMLCanvasElement>document.querySelector('#' + props.canvasId);
+  if (isTouchEvent(event)) {
+    const canvas: HTMLCanvasElement = document.querySelector('#' + props.canvasId) as HTMLCanvasElement;
     const rect = canvas.getBoundingClientRect();
     return {
       x: event.touches[0].clientX - rect.left,
@@ -68,8 +71,8 @@ const getCoordinates = (event: MouseEvent | TouchEvent): Point => {
     };
   }
   return {
-    x: (<MouseEvent>event).offsetX,
-    y: (<MouseEvent>event).offsetY,
+    x: event.offsetX,
+    y: event.offsetY,
   };
 };
 
@@ -88,8 +91,9 @@ const clickCanvas = (event: MouseEvent | TouchEvent) => {
     const p2 = state.coordinates[state.coordinates.length - 1];
     const rect = convertRectangle(p1, p2);
 
-    clear();
-    drawRectangle(rect);
+    const ctx = getContext();
+    clear(ctx);
+    drawRectangle(ctx, rect);
 
     emits('update:rect', rect);
   }
@@ -105,16 +109,15 @@ const convertRectangle = (p1: Point, p2: Point): Rectangle => {
   return { x, y, w, h };
 };
 
-const clear = () => {
-  const ctx = getContext();
+const clear = (ctx: CanvasRenderingContext2D) => {
   ctx.beginPath();
   ctx.clearRect(0, 0, props.width, props.height);
   ctx.fillStyle = props.backgroundColor;
   ctx.fillRect(0, 0, props.width, props.height);
+  ctx.closePath();
 };
 
-const drawRectangle = (rect: Rectangle) => {
-  const ctx = getContext();
+const drawRectangle = (ctx: CanvasRenderingContext2D, rect: Rectangle) => {
   ctx.strokeStyle = props.strokeColor;
   ctx.lineWidth = props.strokeWidth;
   ctx.lineJoin = props.lineJoin;
@@ -124,5 +127,7 @@ const drawRectangle = (rect: Rectangle) => {
 
   ctx.beginPath();
   ctx.strokeRect(rect.x * rateX, rect.y * rateY, rect.w * rateX, rect.h * rateY);
+
+  ctx.closePath();
 };
 </script>

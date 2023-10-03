@@ -1,10 +1,10 @@
 <template>
   <v-container>
     <h2>設定</h2>
-    <preset-editor />
+    <preset-settings />
   </v-container>
 </template>
 
 <script setup lang="ts">
-import PresetEditor from '@/components/Settings/PresetEditor.vue';
+import PresetSettings from '@/components/Settings/PresetSettings.vue';
 </script>

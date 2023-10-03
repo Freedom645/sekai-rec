@@ -46,3 +46,8 @@ interface DataSet<T> {
 
 export type AnalyzeRecord = DataSet<string>;
 export type ImagePosition = DataSet<Rectangle>;
+
+type ThresholdSet<T> = Partial<DataSet<T>> & { default: T };
+export type DefaultKey = Element | 'default';
+export type ThresholdNumber = ThresholdSet<number>;
+export type ThresholdString = ThresholdSet<string>;
