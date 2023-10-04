@@ -139,6 +139,27 @@ const registerScore = async () => {
     return;
   }
 
+  const checkItems = [
+    state.musicTitle,
+    state.combo,
+    state.accuracyCount.perfect,
+    state.accuracyCount.great,
+    state.accuracyCount.good,
+    state.accuracyCount.bad,
+    state.accuracyCount.miss,
+    state.judgmentCount.late,
+    state.judgmentCount.fast,
+    state.judgmentCount.flick,
+  ];
+
+  if (checkItems.some((inputCheck: string | number | undefined) => inputCheck === '')) {
+    notice({ title: '確認', text: '未入力の項目があります。' });
+    return;
+  }
+
+  console.log(checkItems.some((inputCheck) => inputCheck === undefined));
+  console.log(checkItems);
+
   try {
     showProgress();
 
@@ -154,7 +175,7 @@ const registerScore = async () => {
   } finally {
     hiddenProgress();
   }
-
+  
   notice({ title: '登録完了', text: '登録完了しました。' });
 };
 </script>
