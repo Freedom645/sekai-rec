@@ -135,10 +135,6 @@ const registerScore = async () => {
     return;
   }
 
-  if (!(await confirm({ text: '登録しますか？' }))) {
-    return;
-  }
-
   const checkItems = [
     state.musicTitle,
     state.combo,
@@ -153,12 +149,13 @@ const registerScore = async () => {
   ];
 
   if (checkItems.some((inputCheck: string | number | undefined) => inputCheck === '')) {
-    notice({ title: '確認', text: '未入力の項目があります。' });
+    notice({ title: '確認', text: '未入力の項目があります。確認してください。' });
     return;
   }
 
-  console.log(checkItems.some((inputCheck) => inputCheck === undefined));
-  console.log(checkItems);
+  if (!(await confirm({ text: '登録しますか？' }))) {
+    return;
+  }
 
   try {
     showProgress();
@@ -175,7 +172,6 @@ const registerScore = async () => {
   } finally {
     hiddenProgress();
   }
-  
   notice({ title: '登録完了', text: '登録完了しました。' });
 };
 </script>
