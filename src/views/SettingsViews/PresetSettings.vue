@@ -1,34 +1,43 @@
 <template>
   <v-container>
-    <v-row>
-      <v-col cols="12" md="6">
-        <v-select
-          v-model="selectPresetKey"
-          :items="getPresetList"
-          item-value="key"
-          item-title="name"
-          return-object
-          density="compact"
-          hide-details
+    <v-window>
+      <v-window-item :value="1">
+        <v-row>
+          <v-col cols="8" md="6">
+            <v-select
+              v-model="selectPresetKey"
+              :items="getPresetList"
+              item-value="key"
+              item-title="name"
+              return-object
+              density="compact"
+              hide-details
+            />
+          </v-col>
+          <v-col class="d-flex align-center">
+            <v-btn color="primary" text="新規作成" />
+          </v-col>
+          <v-col class="d-flex align-center">
+            <v-btn color="primary" text="編集" @click="clickCopy()" />
+          </v-col>
+        </v-row>
+      </v-window-item>
+      <v-window-item>
+        <preset-editor
+          ref="presetEditor"
+          v-model:target-element="targetElement"
+          @change-rectangle="previewRect = $event"
+          @change-threshold="previewThreshold = $event"
+          @click-size-import="clickSizeImport()"
         />
-      </v-col>
-      <v-col class="d-flex align-center">
-        <v-btn color="primary" text="コピー" @click="clickCopy()" />
-      </v-col>
-    </v-row>
-    <preset-editor
-      ref="presetEditor"
-      v-model:target-element="targetElement"
-      @change-rectangle="previewRect = $event"
-      @change-threshold="previewThreshold = $event"
-      @click-size-import="clickSizeImport()"
-    />
-    <preset-preview
-      ref="presetPreview"
-      :rect="previewRect"
-      :target-element="targetElement"
-      :thresholdSet="previewThreshold"
-    />
+        <preset-preview
+          ref="presetPreview"
+          :rect="previewRect"
+          :target-element="targetElement"
+          :thresholdSet="previewThreshold"
+        />
+      </v-window-item>
+    </v-window>
   </v-container>
 </template>
 

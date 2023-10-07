@@ -9,15 +9,15 @@
             </v-col>
           </v-row>
           <v-row>
-            <v-col cols="10">
+            <v-col cols="8">
               <v-text-field label="プリセット名" variant="outlined" density="compact" hide-details />
             </v-col>
-            <v-col cols="2">
-              <v-btn text="保存" color="primary" />
+            <v-col cols="4">
+              <v-btn icon="mdi-content-save" color="primary" />
             </v-col>
           </v-row>
           <v-row>
-            <v-col cols="5">
+            <v-col cols="4">
               <v-text-field
                 v-model.number="preset.size.w"
                 label="画面横幅"
@@ -27,7 +27,7 @@
                 readonly
               />
             </v-col>
-            <v-col cols="5">
+            <v-col cols="4">
               <v-text-field
                 v-model.number="preset.size.h"
                 label="画面縦幅"
@@ -37,8 +37,8 @@
                 readonly
               />
             </v-col>
-            <v-col cols="2">
-              <v-btn icon="mdi-import" color="secondary" size="small" @click="emits('clickSizeImport')" />
+            <v-col cols="4">
+              <v-btn icon="mdi-import" color="secondary" @click="emits('clickSizeImport')" />
             </v-col>
           </v-row>
         </v-col>

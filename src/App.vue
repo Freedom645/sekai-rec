@@ -91,7 +91,13 @@ const sideMenuList: (MenuGroup | MenuItem)[] = [
     ],
   },
   { type: 'item', title: 'ハイスコア一覧', path: '/score', prependIcon: 'mdi-file-document-multiple' },
-  { type: 'item', title: '設定', path: '/settings', prependIcon: 'mdi-cog' },
+  {
+    type: 'group',
+    title: '設定',
+    path: '/settings',
+    prependIcon: 'mdi-cog',
+    list: [{ type: 'item', title: '解析プリセット', path: '/preset', prependIcon: 'mdi-tune-variant' }],
+  },
 ];
 
 function isMenuGroup(arg: any): arg is MenuGroup {
