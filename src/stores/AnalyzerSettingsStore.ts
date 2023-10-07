@@ -36,13 +36,7 @@ export const generateEmptyPreset = (): Preset => ({
   threshold: { default: 200 },
 });
 
-export const clonePreset = (preset: Preset): Preset => ({
-  key: preset.key,
-  name: preset.name,
-  size: { ...preset.size },
-  position: { ...preset.position },
-  threshold: { ...preset.threshold },
-});
+export const clonePreset = (preset: Preset): Preset => JSON.parse(JSON.stringify(preset));
 
 const generateDefaultData = () => {
   return (Object.keys(Presets) as (keyof typeof Presets)[]).map((key) => {
@@ -53,7 +47,6 @@ const generateDefaultData = () => {
       });
     }, {} as ImagePosition);
 
-    console.log(key, preset.name, preset.threshold);
     return {
       key: key,
       name: preset.name,
@@ -76,10 +69,6 @@ export const useAnalyzerSettingsStore = defineStore('analyzerSettings', {
   }),
   getters: {
     getPresetList: (state): Preset[] => state.presets,
-    getPreset:
-      (state) =>
-      (key: string): Preset | undefined =>
-        state.presets.find((p) => (p.key = key)),
   },
   actions: {
     async fetchPreset(): Promise<Preset[]> {

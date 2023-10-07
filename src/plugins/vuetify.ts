@@ -22,13 +22,15 @@ const vuetify = createVuetify({
       main: {
         dark: true,
         colors: {
-          primary: '#ff80fb',
+          primary: '#311B92',
           secondary: '#80faff',
           accent: '#80ffc3',
           error: '#ff8480',
           warning: '#ff5722',
           info: '#03a9f4',
           success: '#4caf50',
+          normal: '#E6E6E6',
+          danger: '#FF1744',
         },
       },
     },

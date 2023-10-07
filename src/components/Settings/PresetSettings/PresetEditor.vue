@@ -9,11 +9,15 @@
             </v-col>
           </v-row>
           <v-row>
-            <v-col cols="8">
-              <v-text-field label="プリセット名" variant="outlined" density="compact" hide-details />
-            </v-col>
-            <v-col cols="4">
-              <v-btn icon="mdi-content-save" color="primary" />
+            <v-col cols="12">
+              <v-text-field
+                v-model="preset.name"
+                label="プリセット名"
+                variant="outlined"
+                density="compact"
+                hide-details
+                clearable
+              />
             </v-col>
           </v-row>
           <v-row>
@@ -37,8 +41,14 @@
                 readonly
               />
             </v-col>
-            <v-col cols="4">
-              <v-btn icon="mdi-import" color="secondary" @click="emits('clickSizeImport')" />
+            <v-col cols="4" class="d-flex align-center">
+              <v-btn
+                prepend-icon="mdi-image-search"
+                size="small"
+                color="normal"
+                text="インポート"
+                @click="emits('clickSizeImport')"
+              />
             </v-col>
           </v-row>
         </v-col>
@@ -66,7 +76,8 @@
           <v-row>
             <v-col>
               <v-switch
-                color="primary"
+                class="ml-2"
+                color="secondary"
                 label="個別指定"
                 :model-value="preset.threshold[targetElement] !== undefined"
                 @update:model-value="(checked: boolean) => preset.threshold[targetElement] = checked ? preset.threshold['default'] : undefined"
@@ -146,7 +157,7 @@ import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
 import JudgementLabel from '@/components/atomic/JudgementLabel.vue';
 import { Element, type ThresholdNumber } from '@/model/Analyze';
 import type { Preset } from '@/stores/AnalyzerSettingsStore';
-import { generateEmptyPreset } from '@/stores/AnalyzerSettingsStore';
+import { clonePreset, generateEmptyPreset } from '@/stores/AnalyzerSettingsStore';
 import type { Rectangle } from '@/module/ImageProcessor';
 import { watch } from 'vue';
 
@@ -188,14 +199,17 @@ const emits = defineEmits<{
 const preset = reactive<Preset>(generateEmptyPreset());
 
 const setPreset = (value: Partial<Preset>) => {
-  preset.key = value.key ?? preset.key;
-  preset.name = value.name ?? preset.name;
+  preset.key = value.key ?? '';
+  preset.name = value.name ?? '';
   preset.position = { ...(value.position ?? preset.position) };
   preset.threshold = { ...(value.threshold ?? preset.threshold) };
   preset.size = { ...(value.size ?? preset.size) };
 };
+const getPreset = (): Preset => {
+  return clonePreset(preset);
+};
 
-defineExpose({ setPreset });
+defineExpose({ setPreset, getPreset });
 
 watch(
   () => ({
