@@ -40,7 +40,8 @@ import { onMounted, onUnmounted, ref, watch, defineProps, type PropType, nextTic
 import { VImg } from 'vuetify/components';
 import RectangleCanvas from './RectangleCanvas.vue';
 import ImageProcessor, { type Rectangle, type Size } from '@/module/ImageProcessor';
-import type { Element, ThresholdString, ThresholdNumber, DefaultKey } from '@/model/Analyze';
+import { generateThresholdUrls } from '@/module/ScoreAnalyzer';
+import type { Element, ThresholdString, ThresholdNumber } from '@/model/Analyze';
 
 const props = defineProps({
   targetElement: { type: String as PropType<Element>, required: true },
@@ -80,31 +81,6 @@ watch(
     changeSize();
   }
 );
-
-const generateThresholdUrls = async (url: string, thresholdSet: ThresholdNumber): Promise<ThresholdString> => {
-  interface Task {
-    key: number;
-    data: string;
-  }
-  // 閾値の重複排除
-  const thresholds = Object.values(thresholdSet).reduce((obj, value) => obj.add(value), new Set<number>());
-  const tasks = await Promise.all(
-    Array.from(thresholds).map(
-      async (value) => ({ key: value, data: await ImageProcessor.convertThresholdImage(url, value) } as Task)
-    )
-  );
-
-  // 閾値から逆マッピング
-  const valueUrlMap = tasks.reduce(
-    (obj, rec) => Object.assign(obj, { [rec.key]: rec.data }),
-    {} as { [key: number]: string }
-  );
-
-  return (Object.keys(thresholdSet) as DefaultKey[]).reduce(
-    (obj, key) => Object.assign(obj, { [key]: valueUrlMap[thresholdSet[key] ?? thresholdSet['default']] }),
-    {} as ThresholdString
-  );
-};
 
 watch(
   () => ({ files: files.value, thresholdSet: props.thresholdSet }),

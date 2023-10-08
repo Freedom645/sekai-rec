@@ -1,11 +1,10 @@
 import ImageProcessor from '@/module/ImageProcessor';
-import { analyze } from '@/module/ScoreAnalyzer';
+import { analyze, generateThresholdUrls } from '@/module/ScoreAnalyzer';
 import { defineStore } from 'pinia';
 import { useMusicStore } from './MusicStore';
 import { Accuracy, Judgment, type ScoreData } from '@/model/Score';
-import { type AnalyzeRecord, Element } from '@/model/Analyze';
+import { type AnalyzeRecord, Element, type Preset, type ThresholdNumber, type ThresholdString } from '@/model/Analyze';
 import { DifficultyRank, DifficultyRankList } from '@/model/Game';
-import type { Preset } from './AnalyzerSettingsStore';
 
 export interface Settings {
   files: File[];
@@ -42,7 +41,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
     },
     completedData: {
       urls: [] as string[],
-      thresholdUrls: [] as string[],
+      thresholdUrls: [] as ThresholdString[],
       scoreData: [] as ScoreData[],
       isUnregister: [] as boolean[],
     },
@@ -83,13 +82,13 @@ export const useAnalyzerStore = defineStore('analyzer', {
       }
       this.progress.state = OcrSteps[next];
     },
-    async convertThresholdUrls(urls: string[], thresholdValue: number): Promise<string[]> {
+    async convertThresholdUrls(urls: string[], thresholdValue: ThresholdNumber): Promise<ThresholdString[]> {
       this.progress.threshold = 0;
 
       let completed = 0;
-      const thresholdUrls = await Promise.all(
+      const thresholdUrls: ThresholdString[] = await Promise.all(
         urls.map((url) =>
-          ImageProcessor.convertThresholdImage(url, thresholdValue).then((res) => {
+          generateThresholdUrls(url, thresholdValue).then((res) => {
             completed++;
             this.progress.threshold = (completed * 100) / urls.length;
             return res;

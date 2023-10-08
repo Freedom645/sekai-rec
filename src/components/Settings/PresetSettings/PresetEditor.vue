@@ -155,9 +155,7 @@
 import { reactive, type PropType } from 'vue';
 import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
 import JudgementLabel from '@/components/atomic/JudgementLabel.vue';
-import { Element, type ThresholdNumber } from '@/model/Analyze';
-import type { Preset } from '@/stores/AnalyzerSettingsStore';
-import { clonePreset, generateEmptyPreset } from '@/stores/AnalyzerSettingsStore';
+import { Element, type ThresholdNumber, type Preset, clonePreset, generateEmptyPreset } from '@/model/Analyze';
 import type { Rectangle } from '@/module/ImageProcessor';
 import { watch } from 'vue';
 

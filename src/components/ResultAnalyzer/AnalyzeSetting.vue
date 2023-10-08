@@ -33,7 +33,7 @@ import { VContainer, VRow, VCol, VFileInput, VBtn } from 'vuetify/components';
 import PositionPreview from './PositionPreview.vue';
 import { useAnalyzerStore } from '@/stores/AnalyzerStore';
 import { onBeforeRouteLeave } from 'vue-router';
-import type { Preset } from '@/stores/AnalyzerSettingsStore';
+import type { Preset } from '@/model/Analyze';
 
 export interface Settings {
   files: File[] | undefined;

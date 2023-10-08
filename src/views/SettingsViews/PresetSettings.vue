@@ -19,7 +19,13 @@
               :disabled="selectedPresetKey === undefined"
               @click="clickEdit()"
             />
-            <v-btn class="ml-3" color="danger" text="削除" :disabled="selectedPresetKey === undefined" />
+            <v-btn
+              class="ml-3"
+              color="danger"
+              text="削除"
+              :disabled="selectedPresetKey === undefined"
+              @click="clickDeletePreset()"
+            />
           </v-col>
         </v-row>
         <v-row>
@@ -32,7 +38,7 @@
         <v-row>
           <v-col class="d-flex align-center justify-space-between">
             <v-btn color="normal" prepend-icon="mdi-chevron-left" text="戻る" @click="step = 0" />
-            <v-btn color="primary" prepend-icon="mdi-content-save" :text="'保存'" @click="savePreset()" />
+            <v-btn color="primary" prepend-icon="mdi-content-save" :text="'保存'" @click="clickSavePreset()" />
           </v-col>
         </v-row>
         <preset-editor
@@ -59,18 +65,13 @@ import PresetEditor from '@/components/Settings/PresetSettings/PresetEditor.vue'
 import PresetPreview from '@/components/Settings/PresetSettings/PresetPreview.vue';
 import PresetTable from '@/components/Settings/PresetSettings/PresetTable.vue';
 import { Element, ElementList, type ThresholdNumber } from '@/model/Analyze';
-import {
-  generateEmptyPreset,
-  generateEmptyRectangle,
-  useAnalyzerSettingsStore,
-  type Preset,
-  clonePreset,
-} from '@/stores/AnalyzerSettingsStore';
+import { generateEmptyPreset, generateEmptyRectangle, type Preset, clonePreset } from '@/model/Analyze';
 import type { Rectangle } from '@/module/ImageProcessor';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { nextTick } from 'vue';
+import { useAnalyzerSettingsStore } from '@/stores/AnalyzerSettingsStore';
 
-const { getPresetList } = useAnalyzerSettingsStore();
+const { getPresetList, savePreset, deletePreset } = useAnalyzerSettingsStore();
 const { confirm, notice } = useConfirmDialog();
 
 const step = ref(0);
@@ -112,7 +113,22 @@ const moveEditStep = (preset: Preset) => {
   nextTick(() => presetEditor.value?.setPreset(preset));
 };
 
-const savePreset = async () => {
+const clickDeletePreset = async () => {
+  if (selectedPresetKey.value === undefined) {
+    return;
+  }
+
+  if (!(await confirm({ text: '削除しますか？' }))) {
+    return;
+  }
+
+  await deletePreset(selectedPresetKey.value);
+  selectedPresetKey.value = undefined;
+
+  notice({ text: '削除が完了しました。' });
+};
+
+const clickSavePreset = async () => {
   const preset = presetEditor.value?.getPreset();
   if (preset === undefined) {
     return;
@@ -130,6 +146,11 @@ const savePreset = async () => {
   if (!(await confirm({ text: '保存しますか？' }))) {
     return;
   }
+
+  await savePreset(preset);
+
+  notice({ text: '保存が完了しました。' });
+  step.value = 0;
 };
 
 const clickSizeImport = async () => {

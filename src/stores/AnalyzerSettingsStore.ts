@@ -1,42 +1,6 @@
 import { defineStore } from 'pinia';
 import Presets from '@/assets/settings/Presets.json';
-import {
-  ElementList,
-  type DefaultKey,
-  type ImagePosition,
-  type ThresholdNumber,
-  type ThresholdString,
-} from '@/model/Analyze';
-import type { Rectangle, Size } from '@/module/ImageProcessor';
-import ImageProcessor from '@/module/ImageProcessor';
-
-export interface Preset {
-  key: string;
-  name: string;
-  size: Size;
-  position: ImagePosition;
-  threshold: ThresholdNumber;
-}
-
-export const generateEmptyRectangle = (): Rectangle => ({
-  x: 0,
-  y: 0,
-  w: 1,
-  h: 1,
-});
-
-export const generateEmptyPreset = (): Preset => ({
-  key: '',
-  name: '',
-  size: { w: 1, h: 1 },
-  position: ElementList.reduce(
-    (obj, curr) => Object.assign(obj, { [curr]: generateEmptyRectangle() }),
-    {} as ImagePosition
-  ),
-  threshold: { default: 200 },
-});
-
-export const clonePreset = (preset: Preset): Preset => JSON.parse(JSON.stringify(preset));
+import { ElementList, clonePreset, type ImagePosition, type Preset } from '@/model/Analyze';
 
 const generateDefaultData = () => {
   return (Object.keys(Presets) as (keyof typeof Presets)[]).map((key) => {
@@ -60,12 +24,6 @@ const generateDefaultData = () => {
 export const useAnalyzerSettingsStore = defineStore('analyzerSettings', {
   state: () => ({
     presets: generateDefaultData(),
-    editData: {
-      previewFile: undefined as File | undefined,
-      previewImage: '',
-      previewThresholdImage: {} as ThresholdString,
-      preset: generateEmptyPreset(),
-    },
   }),
   getters: {
     getPresetList: (state): Preset[] => state.presets,
@@ -74,39 +32,22 @@ export const useAnalyzerSettingsStore = defineStore('analyzerSettings', {
     async fetchPreset(): Promise<Preset[]> {
       return this.presets;
     },
-    async setEditFile(file: File): Promise<void> {
-      this.editData.previewFile = file;
-      const url = URL.createObjectURL(file);
-      try {
-        this.editData.previewImage = await ImageProcessor.drawRectangles(url, []);
-        this.editData.previewThresholdImage = await this.generateThresholdUrls(url, this.editData.preset.threshold);
-      } finally {
-        URL.revokeObjectURL(url);
+    async savePreset(preset: Preset): Promise<void> {
+      const cloned = clonePreset(preset);
+      const index = this.presets.findIndex((p) => p.key === cloned.key);
+      if (index === -1) {
+        cloned.key = `custom-${this.presets.length + 1}`;
+        this.presets.push(cloned);
+      } else {
+        this.presets[index] = cloned;
       }
     },
-    async generateThresholdUrls(url: string, thresholdSet: ThresholdNumber): Promise<ThresholdString> {
-      interface Task {
-        key: number;
-        data: string;
+    async deletePreset(key: string): Promise<void> {
+      const index = this.presets.findIndex((p) => p.key === key);
+      if (index === -1) {
+        return;
       }
-      // 閾値の重複排除
-      const thresholds = Object.values(thresholdSet).reduce((obj, value) => obj.add(value), new Set<number>());
-      const tasks = await Promise.all(
-        Array.from(thresholds).map(
-          async (value) => ({ key: value, data: await ImageProcessor.convertThresholdImage(url, value) } as Task)
-        )
-      );
-
-      // 閾値から逆マッピング
-      const valueUrlMap = tasks.reduce(
-        (obj, rec) => Object.assign(obj, { [rec.key]: rec.data }),
-        {} as { [key: number]: string }
-      );
-
-      return (Object.keys(thresholdSet) as DefaultKey[]).reduce(
-        (obj, key) => Object.assign(obj, { [key]: valueUrlMap[thresholdSet[key] ?? thresholdSet['default']] }),
-        {} as ThresholdString
-      );
+      this.presets.splice(index, 1);
     },
   },
 });

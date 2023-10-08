@@ -33,9 +33,10 @@
 </template>
 
 <script setup lang="ts">
-import { useAnalyzerSettingsStore, type Preset } from '@/stores/AnalyzerSettingsStore';
 import { ref, watch, type PropType } from 'vue';
 import ImageProcessor from '@/module/ImageProcessor';
+import type { Preset } from '@/model/Analyze';
+import { useAnalyzerSettingsStore } from '@/stores/AnalyzerSettingsStore';
 
 const { getPresetList } = useAnalyzerSettingsStore();
 
