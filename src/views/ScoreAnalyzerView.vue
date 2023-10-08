@@ -12,7 +12,7 @@
           icon="mdi-alert"
         />
       </v-stepper-header>
-      <v-stepper-window>
+      <v-stepper-window :touch="{ right: undefined, left: undefined }">
         <v-stepper-window-item v-for="item in stepperItems" :key="item.value" :value="item.value">
           <component :is="item.component" @submit="submitSettings($event)" />
         </v-stepper-window-item>

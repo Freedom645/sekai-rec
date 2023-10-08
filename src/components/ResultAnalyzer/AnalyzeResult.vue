@@ -61,7 +61,10 @@
             <v-row>
               <v-col cols="12" md="6">
                 <v-responsive :aspect-ratio="16 / 9">
-                  <v-img :src="url" />
+                  <v-img
+                    :src="showGrayscale ? completedData.thresholdUrls[index].default : url"
+                    @click="showGrayscale = !showGrayscale"
+                  />
                 </v-responsive>
               </v-col>
               <v-col>
@@ -124,6 +127,7 @@ const { show, hidden } = useProgressOverlay();
 
 const window = ref(0);
 const editorIsOpen = ref(false);
+const showGrayscale = ref(false);
 
 const fixScoreData = () => {
   editorIsOpen.value = true;
@@ -176,7 +180,8 @@ const complete = async () => {
     await upsertData(registerTargets);
     notice({ title: '登録完了', text: `登録が完了しました。` });
   } catch (e) {
-    const errorMessage = e?.toString() ?? 'Unknown Error';
+    const errorMessage = (e as Object)?.toString() ?? 'Unknown Error';
+    console.error(e);
     notice({ title: '登録エラー', text: `登録エラーが発生しました。<br>${errorMessage}` });
   } finally {
     hidden();
