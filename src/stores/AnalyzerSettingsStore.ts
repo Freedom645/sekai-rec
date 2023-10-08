@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import Presets from '@/assets/settings/Presets.json';
+import Presets from '@/assets/settings/presets.json';
 import { ElementList, clonePreset, type ImagePosition, type Preset } from '@/model/Analyze';
 import { DB } from '@/infrastracture/IndexedDB/IndexedDB';
 
