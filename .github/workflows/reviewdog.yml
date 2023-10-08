@@ -6,33 +6,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      # ref: https://github.com/actions/setup-node#v2
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      # ref: https://github.com/reviewdog/reviewdog#github-action-reviewdogaction-setup
       - uses: reviewdog/action-setup@v1
         with:
           reviewdog_version: latest
-      # ref: https://github.com/actions/cache/blob/main/examples.md#node---yarn
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
       - uses: actions/cache@v2
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          path: ~/.npm
+          key: npm-packages-cache-v1-${{ hashFiles('./package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
-      - name: Install Dependencies
-        run: yarn --frozen-lockfile
-      # ref: https://github.com/reviewdog/reviewdog#available-pre-defined-errorformat
-      - name: Typecheck
-        run: tsc --pretty false --noEmit | reviewdog -f=tsc -reporter=github-pr-review -fail-on-error=true
+            npm-packages-cache-v1-${{ hashFiles('./package-lock.json') }}
+            npm-packages-cache-v1-
+      - name: Install vue-tsc and typescript
+        run: npm install -g vue-tsc@1.0.12 typescript@4.7.4
+      - name: Install dependencies
+        run: npm ci
+      - name: Run vue-tsc
+        run: $(npm root -g)/vue-tsc/bin/vue-tsc.js --pretty false --noEmit | reviewdog -f=tsc -reporter=github-pr-check -fail-on-error=true
         env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.github_token }}
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: reviewdog/action-eslint@v1
         with:
           reporter: github-pr-review
-          eslint_flags: 'src/**/*.{ts,vue}'
+          eslint_flags: 'src/**/*.{vue,js,jsx,cjs,mjs,ts,tsx,cts,mts}'
