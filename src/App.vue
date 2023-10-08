@@ -61,6 +61,8 @@ import {
 } from 'vuetify/components';
 import ConfirmDialog from '@/components/utils/ConfirmDialog.vue';
 import ProgressOverlay from '@/components/utils/ProgressOverlay.vue';
+import { useMusicStore } from './stores/MusicStore';
+import { onBeforeMount } from 'vue';
 
 const drawer = ref(true);
 interface MenuGroup {
@@ -99,6 +101,9 @@ const sideMenuList: (MenuGroup | MenuItem)[] = [
     list: [{ type: 'item', title: '解析プリセット', path: '/preset', prependIcon: 'mdi-tune-variant' }],
   },
 ];
+
+const { fetchMusicData } = useMusicStore();
+onBeforeMount(async () => await fetchMusicData());
 
 function isMenuGroup(arg: any): arg is MenuGroup {
   return arg?.type === 'group';

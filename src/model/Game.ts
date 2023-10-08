@@ -26,7 +26,9 @@ export class Difficulty {
 
     const rank = Object.values(DifficultyRank).find((r) => r === args.rank);
     if (rank === undefined) {
-      throw new Error(`${args.rank} is unknown difficulty rank.`);
+      console.error(`${args.rank} is unknown difficulty rank.`);
+      this.rank = DifficultyRank.EASY;
+      return;
     }
     this.rank = rank;
   }
