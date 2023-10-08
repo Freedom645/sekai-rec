@@ -56,14 +56,6 @@ const convertImageElement = async (url: string): Promise<HTMLImageElement> =>
     }
   });
 
-async function setSrc(dist: HTMLImageElement, canvas: HTMLCanvasElement) {
-  await new Promise<void>((resolve, reject) => {
-    dist.onload = () => resolve();
-    dist.onerror = (e) => reject(e);
-    dist.src = canvas.toDataURL();
-  });
-}
-
 export default {
   async convertThresholdImage(url: string, thresholdValue: number): Promise<string> {
     const img = await convertImageElement(url);
