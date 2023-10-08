@@ -13,7 +13,7 @@
 </template>
 <style scoped>
 .difficulty-rank {
-  background-color: v-bind(backgroundColorName);
+  background: v-bind(backgroundColorName);
 }
 .label {
   width: 5.1rem;
@@ -25,11 +25,11 @@
 
 <script lang="ts" setup>
 import { computed, type PropType } from 'vue';
-import { DifficultyRankList } from '@/model/Game';
+import { DifficultyRank, DifficultyRankList } from '@/model/Game';
 
 const props = defineProps({
   difficulty: {
-    type: String,
+    type: String as PropType<DifficultyRank>,
     required: true,
     validator: (value) => DifficultyRankList.some((rank) => rank === value),
   },

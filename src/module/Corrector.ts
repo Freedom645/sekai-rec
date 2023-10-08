@@ -21,7 +21,10 @@ export const Checker: Record<string, Validator> = {
     title: '総ノーツ数チェック',
     description: 'Perfect～Missまでのノーツ数がデータと一致しているか確認します。',
     validator: (master: Music, data: ScoreData) => {
-      const totalNotes = master.getDifficulty(data.difficulty).noteCount;
+      const totalNotes = master.getDifficulty(data.difficulty)?.noteCount;
+      if (totalNotes === undefined) {
+        return '';
+      }
       const sum = Object.values(data.accuracyCount).reduce((pre, curr) => pre + curr, 0);
       return totalNotes === sum ? '' : `総ノーツ数${totalNotes}に対して、合計${sum}が入力されました。`;
     },
@@ -47,7 +50,11 @@ export const Checker: Record<string, Validator> = {
       const cbList = [Accuracy.GOOD, Accuracy.BAD, Accuracy.MISS];
       const cbCount = cbList.reduce((sum, key) => sum + data.accuracyCount[key], 0);
 
-      const totalNotes = music.getDifficulty(data.difficulty).noteCount;
+      const totalNotes = music.getDifficulty(data.difficulty)?.noteCount;
+
+      if (totalNotes === undefined) {
+        return '';
+      }
 
       const maxCombo = totalNotes - cbCount;
       const minCombo = Math.ceil(maxCombo / (cbCount + 1));
@@ -55,6 +62,16 @@ export const Checker: Record<string, Validator> = {
       return minCombo <= data.combo && data.combo <= maxCombo
         ? ''
         : `${minCombo}～${maxCombo}の範囲外のコンボ数${data.combo}が入力されました。`;
+    },
+  },
+  existsDifficulty: {
+    title: '難易度チェック',
+    description: '',
+    validator: (music: Music, data: ScoreData) => {
+      if (music.getDifficulty(data.difficulty) === undefined) {
+        return `楽曲${music.title}には、難易度${data.difficulty}が設定できません。`;
+      }
+      return '';
     },
   },
 };
