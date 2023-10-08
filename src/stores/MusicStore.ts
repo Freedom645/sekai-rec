@@ -1,6 +1,4 @@
 import { defineStore } from 'pinia';
-import MusicList from '@/assets/sekai-db-diff/musics.json';
-import DifficultyList from '@/assets/sekai-db-diff/musicDifficulties.json';
 import Api from '@/infrastracture/api/SekaiWorldApi';
 import type { Music } from '@/model/Game';
 import { searchFuzzy } from '@/module/Corrector';
