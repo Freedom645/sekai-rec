@@ -2,8 +2,8 @@
   "v3_iPadPro11": {
     "name": "[ver 3] ipadPro 11インチ",
     "threshold": {
-      "default": 155,
-      "difficult": 220
+      "default": 200,
+      "title": 155
     },
     "title": {
       "x": 460,
