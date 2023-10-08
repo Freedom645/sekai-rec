@@ -70,8 +70,9 @@ import type { Rectangle } from '@/module/ImageProcessor';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { nextTick } from 'vue';
 import { useAnalyzerSettingsStore } from '@/stores/AnalyzerSettingsStore';
+import { onMounted } from 'vue';
 
-const { getPresetList, savePreset, deletePreset } = useAnalyzerSettingsStore();
+const { getPresetList, fetchPreset, savePreset, deletePreset } = useAnalyzerSettingsStore();
 const { confirm, notice } = useConfirmDialog();
 
 const step = ref(0);
@@ -83,6 +84,8 @@ const presetPreview = ref<InstanceType<typeof PresetPreview> | null>();
 const targetElement = ref<Element>(Element.TITLE);
 const previewRect = ref<Rectangle>(generateEmptyRectangle());
 const previewThreshold = ref<ThresholdNumber>({ default: 200 });
+
+onMounted(() => fetchPreset());
 
 const clickCreateNew = () => {
   const preset = generateEmptyPreset();

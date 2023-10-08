@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import Presets from '@/assets/settings/Presets.json';
 import { ElementList, clonePreset, type ImagePosition, type Preset } from '@/model/Analyze';
+import { DB } from '@/infrastracture/IndexedDB/IndexedDB';
 
 const generateDefaultData = () => {
   return (Object.keys(Presets) as (keyof typeof Presets)[]).map((key) => {
@@ -23,13 +24,16 @@ const generateDefaultData = () => {
 
 export const useAnalyzerSettingsStore = defineStore('analyzerSettings', {
   state: () => ({
-    presets: generateDefaultData(),
+    presets: [] as Preset[],
   }),
   getters: {
     getPresetList: (state): Preset[] => state.presets,
   },
   actions: {
     async fetchPreset(): Promise<Preset[]> {
+      this.presets.splice(0);
+      this.presets.push(...generateDefaultData());
+      this.presets.push(...(await DB.presetTable.toArray()));
       return this.presets;
     },
     async savePreset(preset: Preset): Promise<void> {
@@ -41,6 +45,7 @@ export const useAnalyzerSettingsStore = defineStore('analyzerSettings', {
       } else {
         this.presets[index] = cloned;
       }
+      await DB.presetTable.put(cloned);
     },
     async deletePreset(key: string): Promise<void> {
       const index = this.presets.findIndex((p) => p.key === key);
@@ -48,6 +53,7 @@ export const useAnalyzerSettingsStore = defineStore('analyzerSettings', {
         return;
       }
       this.presets.splice(index, 1);
+      await DB.presetTable.delete(key);
     },
   },
 });

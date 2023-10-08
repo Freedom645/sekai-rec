@@ -33,12 +33,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, type PropType } from 'vue';
+import { ref, watch, type PropType, onMounted } from 'vue';
 import ImageProcessor from '@/module/ImageProcessor';
 import type { Preset } from '@/model/Analyze';
 import { useAnalyzerSettingsStore } from '@/stores/AnalyzerSettingsStore';
 
-const { getPresetList } = useAnalyzerSettingsStore();
+const { getPresetList, fetchPreset } = useAnalyzerSettingsStore();
 
 const props = defineProps({
   file: {
@@ -55,6 +55,8 @@ const emits = defineEmits<{
 
 const previewImage = ref('');
 const dialog = ref(false);
+
+onMounted(() => fetchPreset());
 
 watch(
   () => ({ file: props.file?.name, preset: props.preset }),
