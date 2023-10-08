@@ -3,7 +3,7 @@
     <v-row class="d-flex align-center">
       <v-col cols="8">
         <v-select
-          label="位置プリセット"
+          label="解析プリセット"
           :model-value="preset"
           @update:model-value="emits('update:preset', $event)"
           :items="getPresetList"

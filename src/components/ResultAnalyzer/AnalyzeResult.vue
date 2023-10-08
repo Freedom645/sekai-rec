@@ -62,7 +62,7 @@
               <v-col cols="12" md="6">
                 <v-responsive :aspect-ratio="16 / 9">
                   <v-img
-                    :src="showGrayscale ? completedData.thresholdUrls[index] : url"
+                    :src="showGrayscale ? completedData.thresholdUrls[index].default : url"
                     @click="showGrayscale = !showGrayscale"
                   />
                 </v-responsive>

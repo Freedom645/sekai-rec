@@ -8,6 +8,7 @@
     :items-per-page="itemsPerPage"
     item-value="id"
     fixed-header
+    @click:row="(_: Event, { item: { value } }: any) => emits('update:presetKey', presetKey !== value ? value : undefined)"
   >
     <template v-slot:item.button="{ item: { value } }">
       <v-checkbox
@@ -46,8 +47,6 @@ import { useAnalyzerSettingsStore } from '@/stores/AnalyzerSettingsStore';
 
 const headers = [
   { title: '', align: 'center', sortable: false, key: 'button' },
-  { title: 'No', align: 'start', sortable: true, key: 'no' },
-  { title: 'ID', align: 'start', sortable: true, key: 'id' },
   { title: '名前', align: 'start', sortable: true, key: 'name' },
 ];
 const pageSizeList = [10, 30, 50, 100, 300];
