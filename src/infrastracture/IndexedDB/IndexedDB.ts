@@ -53,7 +53,7 @@ class IndexedDatabase extends Dexie {
     this.version(1).stores({
       scoreTable: '[musicId+difficulty]',
     });
-    this.version(1).stores({
+    this.version(2).stores({
       presetTable: 'key',
     });
   }

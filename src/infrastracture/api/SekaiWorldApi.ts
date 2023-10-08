@@ -1,16 +1,35 @@
 import { BaseAPI } from './ApiModule';
+import { Difficulty, Music } from '@/model/Game';
 
 class SekaiWorldAPI extends BaseAPI {
   constructor() {
     super('https://sekai-world.github.io/sekai-master-db-diff');
   }
 
-  public async getMusicJson() {
-    return await super.get<ResponseMusic[]>('/musics.json');
+  public async getMusics(): Promise<Music[]> {
+    const requestTasks = [
+      super.get<ResponseMusic[]>('/musics.json'),
+      super.get<ResponseMusicDifficulties[]>('/musicDifficulties.json'),
+    ] as const;
+
+    const [musicsJson, difficultiesJson] = await Promise.all(requestTasks);
+    return this.convertMusic(musicsJson, difficultiesJson);
   }
 
-  public async getMusicDifficulties(): Promise<ResponseMusicDifficulties[]> {
-    return await super.get<ResponseMusicDifficulties[]>('/musicDifficulties.json');
+  private convertMusic(musicsJson: ResponseMusic[], difficultiesJson: ResponseMusicDifficulties[]): Music[] {
+    const diff = difficultiesJson.reduce((pre, curr) => {
+      const musicId = curr.musicId;
+      const diffList = pre[musicId] ?? [];
+      diffList.push(
+        new Difficulty({ level: curr.playLevel, rank: curr.musicDifficulty, noteCount: curr.totalNoteCount })
+      );
+      pre[musicId] = diffList;
+      return pre;
+    }, {} as { [id: number]: Difficulty[] });
+
+    return musicsJson.map((music) => {
+      return new Music({ musicId: music.id, title: music.title, difficulties: diff[music.id] });
+    });
   }
 }
 
