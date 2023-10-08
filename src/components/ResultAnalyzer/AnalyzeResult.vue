@@ -181,7 +181,6 @@ const complete = async () => {
     notice({ title: '登録完了', text: `登録が完了しました。` });
   } catch (e) {
     const errorMessage = (e as Object)?.toString() ?? 'Unknown Error';
-    console.error(e);
     notice({ title: '登録エラー', text: `登録エラーが発生しました。<br>${errorMessage}` });
   } finally {
     hidden();
