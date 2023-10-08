@@ -1,4 +1,5 @@
 export const DifficultyRank = {
+  APPEND: 'append',
   MASTER: 'master',
   EXPERT: 'expert',
   HARD: 'hard',
@@ -9,6 +10,7 @@ export const DifficultyRank = {
 export type DifficultyRank = (typeof DifficultyRank)[keyof typeof DifficultyRank];
 
 export const DifficultyRankList = [
+  DifficultyRank.APPEND,
   DifficultyRank.MASTER,
   DifficultyRank.EXPERT,
   DifficultyRank.HARD,
@@ -26,7 +28,9 @@ export class Difficulty {
 
     const rank = Object.values(DifficultyRank).find((r) => r === args.rank);
     if (rank === undefined) {
-      throw new Error(`${args.rank} is unknown difficulty rank.`);
+      console.error(`${args.rank} is unknown difficulty rank.`);
+      this.rank = DifficultyRank.EASY;
+      return;
     }
     this.rank = rank;
   }
@@ -42,12 +46,8 @@ export class Music {
     this.difficulties = args.difficulties;
   }
 
-  public getDifficulty(diff: DifficultyRank): Difficulty {
-    const data = this.difficulties.find((d) => d.rank === diff);
-    if (data === undefined) {
-      throw new Error(`Not found ${diff} at ${this.title}`);
-    }
-    return data;
+  public getDifficulty(diff: DifficultyRank): Difficulty | undefined {
+    return this.difficulties.find((d) => d.rank === diff);
   }
 
   get lowerLevel(): number {

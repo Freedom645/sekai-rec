@@ -10,38 +10,16 @@ export interface Size {
   h: number;
 }
 
-export class Rectangle {
-  private readonly tl: Point;
-  private readonly br: Point;
-  constructor(point: Point, size: Size) {
-    this.tl = { x: point.x, y: point.y };
-    this.br = { x: point.x + size.w, y: point.y + size.h };
-  }
-
-  get topLeft(): Point {
-    return this.tl;
-  }
-
-  get bottomRight(): Point {
-    return this.br;
-  }
-
-  get width(): number {
-    return this.br.x - this.tl.x;
-  }
-
-  get height(): number {
-    return this.br.y - this.tl.y;
-  }
-
-  get size(): Size {
-    return { w: this.width, h: this.height };
-  }
-
-  public convertTesseractRect(): TesseractRect {
-    return { left: this.tl.x, top: this.tl.y, width: this.width, height: this.height };
-  }
+export interface Rectangle {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
+
+export const convertTesseractRect = (rect: Rectangle): TesseractRect => {
+  return { left: rect.x, top: rect.y, width: rect.w, height: rect.h };
+};
 
 function threshold(data: ImageData, threshold: number = 200): ImageData {
   const lum = [0.298912, 0.586611, 0.114478]; //輝度計算用の係数
@@ -79,12 +57,24 @@ const convertImageElement = async (url: string): Promise<HTMLImageElement> =>
   });
 
 export default {
-  async convertThresholdImage(url: string): Promise<string> {
+  async convertThresholdImage(url: string, thresholdValue: number): Promise<string> {
     const img = await convertImageElement(url);
     const { canvas, ctx } = createByImage(img);
     const imagedata = ctx.getImageData(0, 0, img.width, img.height);
-    threshold(imagedata);
+    threshold(imagedata, thresholdValue);
     ctx.putImageData(imagedata, 0, 0);
+    return canvas.toDataURL();
+  },
+  async drawRectangles(url: string, positions: Rectangle[]): Promise<string> {
+    const img = await convertImageElement(url);
+    const { canvas, ctx } = createByImage(img);
+
+    ctx.beginPath();
+    positions.forEach((r) => ctx.rect(r.x, r.y, r.w, r.h));
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
     return canvas.toDataURL();
   },
 };

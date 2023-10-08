@@ -1,4 +1,4 @@
-import type { Rectangle } from '@/module/ImageProcessor';
+import type { Rectangle, Size } from '@/module/ImageProcessor';
 
 export const Element = {
   TITLE: 'title',
@@ -46,3 +46,36 @@ interface DataSet<T> {
 
 export type AnalyzeRecord = DataSet<string>;
 export type ImagePosition = DataSet<Rectangle>;
+
+type ThresholdSet<T> = Partial<DataSet<T>> & { default: T };
+export type DefaultKey = Element | 'default';
+export type ThresholdNumber = ThresholdSet<number>;
+export type ThresholdString = ThresholdSet<string>;
+
+export interface Preset {
+  key: string;
+  name: string;
+  size: Size;
+  position: ImagePosition;
+  threshold: ThresholdNumber;
+}
+
+export const generateEmptyRectangle = (): Rectangle => ({
+  x: 0,
+  y: 0,
+  w: 1,
+  h: 1,
+});
+
+export const generateEmptyPreset = (): Preset => ({
+  key: '',
+  name: '',
+  size: { w: 1, h: 1 },
+  position: ElementList.reduce(
+    (obj, curr) => Object.assign(obj, { [curr]: generateEmptyRectangle() }),
+    {} as ImagePosition
+  ),
+  threshold: { default: 200 },
+});
+
+export const clonePreset = (preset: Preset): Preset => JSON.parse(JSON.stringify(preset));

@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-chip prepend-icon="mdi-alert" variant="text" color="yellow">
+    <v-chip prepend-icon="mdi-alert" variant="text" color="var(--game-accuracy-flick)">
       <span class="font-weight-bold"> FLICK </span>
       <span class="font-weight-bold ml-5" style="color: white"> {{ count }} </span>
     </v-chip>

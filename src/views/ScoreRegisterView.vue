@@ -54,7 +54,7 @@
       <v-col>
         <score-data-checker
           :music-id="music?.id"
-          :difficulty="difficulty?.rank"
+          :difficulty="state.difficulty"
           :accuracy-count="state.accuracyCount"
           :judgment-count="state.judgmentCount"
           :combo="state.combo"

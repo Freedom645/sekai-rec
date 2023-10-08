@@ -11,9 +11,26 @@
 
     <v-navigation-drawer v-model="drawer">
       <v-list nav>
-        <RouterLink v-for="menu in sideMenuList" :key="menu.title" :to="menu.to">
+        <template v-for="menu in sideMenuList" :key="menu.title">
+          <template v-if="isMenuGroup(menu)">
+            <v-list-group :title="menu.title" :group="menu.path">
+              <template v-slot:activator="{ props }">
+                <v-list-item v-bind="props" :prepend-icon="menu.prependIcon" :title="menu.title" />
+              </template>
+              <RouterLink v-for="item in menu.list" :key="item.title" :to="menu.path + item.path">
+                <v-list-item :prepend-icon="item.prependIcon" :title="item.title" :value="item.title" />
+              </RouterLink>
+            </v-list-group>
+          </template>
+          <template v-if="isMenuItem(menu)">
+            <RouterLink :to="menu.path">
+              <v-list-item :prepend-icon="menu.prependIcon" :title="menu.title" :value="menu.title" />
+            </RouterLink>
+          </template>
+        </template>
+        <!-- <RouterLink v-for="menu in sideMenuList" :key="menu.title" :to="menu.to">
           <v-list-item :prepend-icon="menu.icon" :title="menu.title" :value="menu.title" />
-        </RouterLink>
+        </RouterLink> -->
       </v-list>
     </v-navigation-drawer>
 
@@ -44,14 +61,57 @@ import {
 } from 'vuetify/components';
 import ConfirmDialog from '@/components/utils/ConfirmDialog.vue';
 import ProgressOverlay from '@/components/utils/ProgressOverlay.vue';
+import { useMusicStore } from './stores/MusicStore';
+import { onBeforeMount } from 'vue';
 
 const drawer = ref(true);
-const sideMenuList = [
-  { title: 'ホーム', to: '/', icon: 'mdi-home' },
-  { title: 'スコア登録', to: '/register', icon: 'mdi-pencil-plus' },
-  { title: 'スコア解析', to: '/register-image', icon: 'mdi-text-recognition' },
-  { title: 'ハイスコア一覧', to: '/score', icon: 'mdi-file-document-multiple' },
+interface MenuGroup {
+  type: 'group';
+  title: string;
+  path: string;
+  list: MenuItem[];
+  prependIcon?: string;
+}
+
+interface MenuItem {
+  type: 'item';
+  title: string;
+  path: string;
+  prependIcon?: string;
+}
+
+const sideMenuList: (MenuGroup | MenuItem)[] = [
+  { type: 'item', title: 'ホーム', path: '/', prependIcon: 'mdi-home' },
+  {
+    type: 'group',
+    title: 'スコア登録',
+    path: '/register',
+    prependIcon: 'mdi-pencil-plus',
+    list: [
+      { type: 'item', title: '手動', path: '/manual', prependIcon: 'mdi-gesture-tap' },
+      { type: 'item', title: '画像解析', path: '/image', prependIcon: 'mdi-text-recognition' },
+    ],
+  },
+  { type: 'item', title: 'ハイスコア一覧', path: '/score', prependIcon: 'mdi-file-document-multiple' },
+  {
+    type: 'group',
+    title: '設定',
+    path: '/settings',
+    prependIcon: 'mdi-cog',
+    list: [{ type: 'item', title: '解析プリセット', path: '/preset', prependIcon: 'mdi-tune-variant' }],
+  },
 ];
+
+const { fetchMusicData } = useMusicStore();
+onBeforeMount(async () => await fetchMusicData());
+
+function isMenuGroup(arg: any): arg is MenuGroup {
+  return arg?.type === 'group';
+}
+
+function isMenuItem(arg: any): arg is MenuItem {
+  return arg?.type === 'item';
+}
 </script>
 
 <style scoped>

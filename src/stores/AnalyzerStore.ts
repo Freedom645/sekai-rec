@@ -1,13 +1,13 @@
-import ImageProcessor from '@/module/ImageProcessor';
-import { analyze } from '@/module/ScoreAnalyzer';
+import { analyze, generateThresholdUrls } from '@/module/ScoreAnalyzer';
 import { defineStore } from 'pinia';
 import { useMusicStore } from './MusicStore';
 import { Accuracy, Judgment, type ScoreData } from '@/model/Score';
-import { type AnalyzeRecord, Element } from '@/model/Analyze';
+import { type AnalyzeRecord, Element, type Preset, type ThresholdNumber, type ThresholdString } from '@/model/Analyze';
 import { DifficultyRank, DifficultyRankList } from '@/model/Game';
 
 export interface Settings {
   files: File[];
+  preset: Preset | undefined;
 }
 
 type OcrStepKey = 'not-start' | 'threshold' | 'init' | 'ocr' | 'correct' | 'completed';
@@ -28,7 +28,8 @@ export const OcrSteps = [
 export const useAnalyzerStore = defineStore('analyzer', {
   state: () => ({
     settings: {
-      files: [] as File[],
+      files: [],
+      preset: undefined,
     } as Settings,
     progress: {
       state: OcrSteps[0] as OcrStep,
@@ -39,6 +40,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
     },
     completedData: {
       urls: [] as string[],
+      thresholdUrls: [] as ThresholdString[],
       scoreData: [] as ScoreData[],
       isUnregister: [] as boolean[],
     },
@@ -58,6 +60,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
     setSettings(settings: Partial<Settings>): void {
       this.settings.files.splice(0);
       this.settings.files.push(...(settings.files ?? []));
+      this.settings.preset = settings.preset ?? this.settings.preset;
     },
     initializeProgress(): void {
       this.progress.state = OcrSteps[0];
@@ -67,6 +70,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
       this.progress.errorText = '';
       this.completedData.urls.forEach((file) => URL.revokeObjectURL(file));
       this.completedData.urls.splice(0);
+      this.completedData.thresholdUrls.splice(0);
       this.completedData.scoreData.splice(0);
       this.completedData.isUnregister.splice(0);
     },
@@ -77,13 +81,13 @@ export const useAnalyzerStore = defineStore('analyzer', {
       }
       this.progress.state = OcrSteps[next];
     },
-    async convertThresholdUrls(urls: string[]): Promise<string[]> {
+    async convertThresholdUrls(urls: string[], thresholdValue: ThresholdNumber): Promise<ThresholdString[]> {
       this.progress.threshold = 0;
 
       let completed = 0;
-      const thresholdUrls = await Promise.all(
+      const thresholdUrls: ThresholdString[] = await Promise.all(
         urls.map((url) =>
-          ImageProcessor.convertThresholdImage(url).then((res) => {
+          generateThresholdUrls(url, thresholdValue).then((res) => {
             completed++;
             this.progress.threshold = (completed * 100) / urls.length;
             return res;
@@ -133,13 +137,17 @@ export const useAnalyzerStore = defineStore('analyzer', {
       if (this.settings.files === undefined || this.settings.files.length === 0) {
         return 'ファイルが選択されていません。';
       }
+      if (this.settings.preset === undefined) {
+        return 'プリセットが選択されていません。';
+      }
       this.initializeProgress();
       const urls = this.settings.files.map((file) => URL.createObjectURL(file));
       this.completedData.urls = urls;
       try {
         // 二値化
         this.proceedOcrStep('threshold');
-        const thresholdUrls = await this.convertThresholdUrls(urls);
+        const thresholdUrls = await this.convertThresholdUrls(urls, this.settings.preset.threshold);
+        this.completedData.thresholdUrls.push(...thresholdUrls);
 
         // OCRセットアップ ～ 解析
         this.proceedOcrStep('init');
@@ -150,7 +158,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
           this.proceedOcrStep('ocr');
           this.progress.ocrTask = v;
         };
-        const records = await analyze(thresholdUrls, callback);
+        const records = await analyze(thresholdUrls, this.settings.preset, callback);
 
         // データ補正
         this.proceedOcrStep('correct');
@@ -165,6 +173,8 @@ export const useAnalyzerStore = defineStore('analyzer', {
           this.progress.errorText = e.message;
         }
         this.progress.errorText = (e as Object)?.toString() ?? 'Unknown Error';
+
+        console.error(e);
 
         urls.forEach((url) => URL.revokeObjectURL(url));
         urls.splice(0);

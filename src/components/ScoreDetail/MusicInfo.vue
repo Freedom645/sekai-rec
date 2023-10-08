@@ -23,10 +23,11 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, type PropType } from 'vue';
 import { VContainer, VRow, VCol, VImg } from 'vuetify/components';
 import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import { useMusicStore } from '@/stores/MusicStore';
+import type { DifficultyRank as Difficulty } from '@/model/Game';
 
 const props = defineProps({
   musicId: {
@@ -34,7 +35,7 @@ const props = defineProps({
     required: true,
   },
   difficulty: {
-    type: String,
+    type: String as PropType<Difficulty>,
     required: true,
   },
 });
