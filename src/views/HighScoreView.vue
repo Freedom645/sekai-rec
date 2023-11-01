@@ -5,21 +5,12 @@
       <v-col>
         <v-btn
           class="mr-3"
-          color="secondary"
+          color="normal"
           elevation="4"
           prepend-icon="mdi-filter-multiple"
           @click="() => (showFilter = !showFilter)"
         >
           フィルタ
-        </v-btn>
-        <v-btn
-          class="mr-3"
-          color="secondary"
-          elevation="4"
-          prepend-icon="mdi-swap-horizontal-bold"
-          @click="clickChangeScoreDisplay()"
-        >
-          スコア切替
         </v-btn>
       </v-col>
     </v-row>
@@ -34,7 +25,7 @@
     </v-expand-transition>
     <v-row>
       <v-col>
-        <ScoreTable :filter-condition="filterCondition" :score-type="scoreType" @click-row="clickMusicRecord($event)" />
+        <ScoreTable :filter-condition="filterCondition" @click-row="clickMusicRecord($event)" />
       </v-col>
     </v-row>
     <high-score-modal
@@ -48,7 +39,7 @@
 import { ref } from 'vue';
 import { VContainer, VRow, VCol, VBtn, VExpandTransition, VCard } from 'vuetify/components';
 import MusicFilter from '@/components/ScoreTable/MusicFilter.vue';
-import ScoreTable, { type ScoreType } from '@/components/ScoreTable/ScoreTable.vue';
+import ScoreTable from '@/components/ScoreTable/ScoreTable.vue';
 import HighScoreModal from '@/components/ScoreDetail/HighScoreModal.vue';
 import { DifficultyRank } from '@/model/Game';
 import { emptyCondition, type FilterCondition } from '@/model/Filter';
@@ -61,7 +52,6 @@ const { maxLevel } = useMusicStore();
 
 const showFilter = ref(false);
 const filterCondition = ref(emptyCondition(maxLevel));
-const scoreType = ref('rankMatch' as ScoreType);
 
 const modalState = reactive({
   isOpen: false,
@@ -79,11 +69,5 @@ const clickMusicRecord = async (event: { id: number; diff: DifficultyRank }) => 
   modalState.difficulty = event.diff;
   await nextTick();
   modalState.isOpen = true;
-};
-
-const clickChangeScoreDisplay = () => {
-  const list: ScoreType[] = ['rankMatch', 'rate', 'ap'];
-  const next = list.findIndex((t) => t === scoreType.value) + 1;
-  scoreType.value = list[next % list.length];
 };
 </script>
