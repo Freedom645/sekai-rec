@@ -92,12 +92,24 @@ const props = defineProps({
 
 // emits
 const emits = defineEmits<{ (e: 'clickRow', value: { id: number; diff: Difficulty }): void }>();
-const Filters = {
-  title: (value: string): boolean =>
-    props.filterCondition.musicTitle === '' || value.includes(props.filterCondition.musicTitle),
-  difficulty: (value: string): boolean => props.filterCondition.difficultyCheckState[value],
-  level: (value: number): boolean =>
-    props.filterCondition.level.low <= value && value <= props.filterCondition.level.high,
+const Filters: Record<string, (row: RowItem) => boolean> = {
+  title: (row): boolean =>
+    props.filterCondition.musicTitle === '' || row.title.includes(props.filterCondition.musicTitle),
+  difficulty: (row): boolean => props.filterCondition.difficultyCheckState[row.difficulty],
+  level: (row): boolean =>
+    props.filterCondition.level.low <= row.level && row.level <= props.filterCondition.level.high,
+  fullCombo: (row) => {
+    if (props.filterCondition.fullCombo === 'none') {
+      return true;
+    }
+    return (props.filterCondition.fullCombo === 'include') !== (row.comboState === 'none');
+  },
+  allPerfect: (row) => {
+    if (props.filterCondition.allPerfect === 'none') {
+      return true;
+    }
+    return (props.filterCondition.allPerfect !== 'include') !== (row.comboState === 'ap');
+  },
 };
 
 // data
@@ -126,6 +138,8 @@ interface RowItem {
   accuracyScore: number[];
   /** スコアの割合表記 */
   scoreRate: number;
+  /** コンボ状態 */
+  comboState: 'none' | 'fc' | 'ap';
 }
 
 const customKeySort: Record<string, (a: any, b: any) => number> = {
@@ -163,6 +177,8 @@ const items = computed(() => {
 
       const musicIdPad = ('000' + score.musicId.toString()).slice(-3);
 
+      const comboState = maxScore === rankScore ? 'ap' : score.combo === diff.noteCount ? 'fc' : 'none';
+
       const row: RowItem = {
         musicId: score.musicId,
         jacketUrl: `https://storage.sekai.best/sekai-assets/music/jacket/jacket_s_${musicIdPad}_rip/jacket_s_${musicIdPad}.webp`,
@@ -173,15 +189,14 @@ const items = computed(() => {
         scoreRate: (rankScore / maxScore) * 100,
         apDiffScore: `${rankScore - maxScore}`,
         accuracyScore: accuracyScore,
+        comboState: comboState,
       };
 
       return row;
     })
     .sort(defaultSortComparator);
 
-  return scoreRecords.filter((rec) => {
-    return Filters.title(rec.title) && Filters.difficulty(rec.difficulty) && Filters.level(rec.level);
-  });
+  return scoreRecords.filter((rec) => Object.values(Filters).every((filter) => filter(rec)));
 });
 
 /** 初期ソート評価関数 */
