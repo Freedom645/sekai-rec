@@ -80,7 +80,7 @@ const defaultHeaders = [
 ];
 
 const { xs } = useDisplay();
-const { findMusic, musicList } = useMusicStore();
+const { musicList } = useMusicStore();
 const { fetchAllData, allData } = useScoreStore();
 const { scoreView } = useSettingsStore();
 
