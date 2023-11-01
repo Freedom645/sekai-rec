@@ -2,15 +2,20 @@
 <template>
   <v-data-table
     class="elevation-4"
-    density="compact"
     v-model:page="page"
     :headers="headers"
     :items="items"
     :items-per-page="itemsPerPage"
+    :customKeySort="customKeySort"
     hide-default-footer
     fixed-header
+    multiSort
+    noDataText="データがありません。"
     @click:row="(_: any, row: any) => emits('clickRow', { id: row.item.raw.musicId, diff: row.item.raw.difficulty })"
   >
+    <template v-slot:item.jacketUrl="props">
+      <v-img width="50" :src="props.item.columns.jacketUrl" />
+    </template>
     <template v-slot:item.title="props">
       <span class="font-weight-medium">
         {{ props.item.columns.title }}
@@ -20,22 +25,13 @@
       <difficulty-rank :type="xs ? 'icon' : 'label'" :difficulty="props.item.raw.difficulty" />
     </template>
     <template v-slot:item.scoreRate="props">
-      <template v-if="scoreType === 'rate'">
-        <v-progress-linear color="indigo" :model-value="props.item.raw.scoreRate" height="20">
-          <span v-if="xs">{{ Math.round(props.item.raw.scoreRate) }}%</span>
-          <span v-if="!xs">{{ Math.round(props.item.raw.scoreRate * 100) / 100 }}%</span>
-        </v-progress-linear>
-      </template>
-      <template v-else-if="scoreType === 'rankMatch'">
-        {{ props.item.raw.score }}
-      </template>
-      <template v-else-if="scoreType === 'ap'">
-        <template v-if="props.item.raw.score - props.item.raw.maxScore === 0">AP</template>
-        <template v-else>
-          <span v-if="xs">{{ props.item.raw.score - props.item.raw.maxScore }}</span>
-          <span v-if="!xs">AP {{ props.item.raw.score - props.item.raw.maxScore }}</span>
-        </template>
-      </template>
+      <v-progress-linear color="indigo" :model-value="props.item.raw.scoreRate" height="20">
+        <span v-if="xs">{{ Math.round(props.item.raw.scoreRate) }}%</span>
+        <span v-if="!xs">{{ Math.round(props.item.raw.scoreRate * 100) / 100 }}%</span>
+      </v-progress-linear>
+    </template>
+    <template v-slot:item.accuracyScore="props">
+      {{ props.item.raw.accuracyScore.map((v: number) => v.toString()).join('-') }}
     </template>
 
     <template v-slot:bottom>
@@ -61,51 +57,53 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, defineEmits, type PropType, computed } from 'vue';
+import { ref, defineEmits, computed, onBeforeMount } from 'vue';
 import { useDisplay } from 'vuetify';
 import { VPagination, VSelect, VProgressLinear, VContainer } from 'vuetify/components';
 import { VDataTable } from 'vuetify/labs/VDataTable';
 import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import { useMusicStore } from '@/stores/MusicStore';
-import type { DifficultyRank as Difficulty } from '@/model/Game';
-import { calcRankMatchScore } from '@/model/Score';
-import type { FilterCondition } from '@/model/Filter';
+import { DifficultyRankList, type DifficultyRank as Difficulty } from '@/model/Game';
+import { Accuracy, calcRankMatchScore } from '@/model/Score';
 import { useScoreStore } from '@/stores/ScoreStore';
-import { onMounted } from 'vue';
+import { useSettingsStore } from '@/stores/SettingsStore';
 
-export type ScoreType = 'rate' | 'rankMatch' | 'ap';
-
-const headers = [
+const defaultHeaders = [
+  { title: '', align: 'center', sortable: false, key: 'jacketUrl' },
   { title: '楽曲名', align: 'start', sortable: true, key: 'title' },
   { title: '難易度', align: 'start', sortable: true, key: 'difficulty' },
-  { title: 'レベル', align: 'start', sortable: true, key: 'level' },
-  { title: 'スコア', align: 'end', sortable: true, key: 'scoreRate' },
+  { title: 'Lv', align: 'start', sortable: true, key: 'level' },
+  { title: 'スコア', align: 'end', sortable: true, key: 'rankMatchScore' },
+  { title: 'スコア (減点)', align: 'end', sortable: true, key: 'apDiffScore' },
+  { title: 'スコア (精度)', align: 'end', sortable: true, key: 'accuracyScore' },
+  { title: 'スコア (割合)', align: 'end', sortable: true, key: 'scoreRate' },
 ];
 
 const { xs } = useDisplay();
-const { findMusic } = useMusicStore();
+const { musicList } = useMusicStore();
 const { fetchAllData, allData } = useScoreStore();
-
-// props
-const props = defineProps({
-  filterCondition: {
-    type: Object as PropType<FilterCondition>,
-    required: true,
-  },
-  scoreType: {
-    type: String as PropType<ScoreType>,
-    default: 'rate',
-  },
-});
+const { scoreView } = useSettingsStore();
 
 // emits
 const emits = defineEmits<{ (e: 'clickRow', value: { id: number; diff: Difficulty }): void }>();
-const Filters = {
-  title: (value: string): boolean =>
-    props.filterCondition.musicTitle === '' || value.includes(props.filterCondition.musicTitle),
-  difficulty: (value: string): boolean => props.filterCondition.difficultyCheckState[value],
-  level: (value: number): boolean =>
-    props.filterCondition.level.low <= value && value <= props.filterCondition.level.high,
+const Filters: Record<string, (row: RowItem) => boolean> = {
+  title: (row): boolean =>
+    scoreView.filterCondition.musicTitle === '' || row.title.includes(scoreView.filterCondition.musicTitle),
+  difficulty: (row): boolean => scoreView.filterCondition.difficultyCheckState[row.difficulty],
+  level: (row): boolean =>
+    scoreView.filterCondition.level.low <= row.level && row.level <= scoreView.filterCondition.level.high,
+  fullCombo: (row) => {
+    if (scoreView.filterCondition.fullCombo === 'none') {
+      return true;
+    }
+    return (scoreView.filterCondition.fullCombo === 'include') !== (row.comboState === 'none');
+  },
+  allPerfect: (row) => {
+    if (scoreView.filterCondition.allPerfect === 'none') {
+      return true;
+    }
+    return (scoreView.filterCondition.allPerfect !== 'include') !== (row.comboState === 'ap');
+  },
 };
 
 // data
@@ -116,48 +114,120 @@ const itemsPerPage = ref(30);
 const pageCount = computed(() => Math.floor(items.value.length / itemsPerPage.value) + 1);
 
 interface RowItem {
+  /** 楽曲ID */
   musicId: number;
+  /** ジャケット画像URL */
+  jacketUrl: string;
+  /** 楽曲名 */
   title: string;
-  difficulty: string;
+  /** 難易度 */
+  difficulty: Difficulty;
+  /** 楽曲レベル */
   level: number;
-  score: number;
+  /** スコアのランクマッチ表記 */
+  rankMatchScore: number;
+  /** スコアの減点式表記 */
+  apDiffScore: string;
+  /** スコアの精度表記 */
+  accuracyScore: number[];
+  /** スコアの割合表記 */
   scoreRate: number;
-  maxScore: number;
+  /** コンボ状態 */
+  comboState: 'none' | 'fc' | 'ap';
 }
 
-// computed
-onMounted(async () => {
+const customKeySort: Record<string, (a: any, b: any) => number> = {
+  difficulty: (left: Difficulty, right: Difficulty) => {
+    return DifficultyRankList.findIndex((d) => d === left) - DifficultyRankList.findIndex((d) => d === right);
+  },
+  accuracyScore: (left: number[], right: number[]) => {
+    const weight = [1, 2, 3, 3];
+    const leftW = weight.reduce((sum, w, i) => sum + left[i] * w, 0);
+    const rightW = weight.reduce((sum, w, i) => sum + right[i] * w, 0);
+    if (leftW !== rightW) {
+      return leftW - rightW;
+    }
+
+    for (let i = 0; i < 4; i++) {
+      if (left[3 - i] !== right[3 - i]) {
+        return left[3 - i] - right[3 - i];
+      }
+    }
+    return 0;
+  },
+};
+
+onBeforeMount(async () => {
   await fetchAllData();
 });
 
+const headers = computed(() => {
+  return defaultHeaders.filter((h) => scoreView.columns.some((c) => c === h.key));
+});
+
 const items = computed(() => {
-  const scoreRecords: RowItem[] = allData
-    .flatMap((score) => {
-      const music = findMusic(score.musicId);
-      const diff = music?.getDifficulty(score.difficulty);
-      if (music === undefined || diff === undefined) {
+  const scoreRecords: RowItem[] = musicList
+    .flatMap((music) => music.difficulties.map((diff) => ({ music, diff })))
+    .flatMap(({ music, diff }) => {
+      const musicIdPad = ('000' + music.id.toString()).slice(-3);
+
+      const score = allData.find((data) => data.musicId === music.id && data.difficulty === diff.rank);
+      if (score === undefined) {
+        if (scoreView.filterCondition.showUnregister) {
+          const row: RowItem = {
+            musicId: music.id,
+            jacketUrl: `https://storage.sekai.best/sekai-assets/music/jacket/jacket_s_${musicIdPad}_rip/jacket_s_${musicIdPad}.webp`,
+            title: music.title,
+            difficulty: diff.rank,
+            level: diff.level,
+            rankMatchScore: 0,
+            scoreRate: 0,
+            apDiffScore: '-',
+            accuracyScore: [0, 0, 0, 0],
+            comboState: 'none',
+          };
+          return row;
+        }
         return [];
       }
 
       const rankScore = calcRankMatchScore(score.accuracyCount);
       const maxScore = diff.noteCount * 3;
 
+      const accuracyScore = [Accuracy.GREAT, Accuracy.GOOD, Accuracy.BAD, Accuracy.MISS].map(
+        (acc) => score.accuracyCount[acc]
+      );
+
+      const comboState = maxScore === rankScore ? 'ap' : score.combo === diff.noteCount ? 'fc' : 'none';
+
       const row: RowItem = {
         musicId: score.musicId,
-        title: music?.title ?? '',
+        jacketUrl: `https://storage.sekai.best/sekai-assets/music/jacket/jacket_s_${musicIdPad}_rip/jacket_s_${musicIdPad}.webp`,
+        title: music.title,
         difficulty: score.difficulty,
-        level: diff?.level ?? 0,
-        score: rankScore,
-        maxScore: maxScore,
+        level: diff.level,
+        rankMatchScore: rankScore,
         scoreRate: (rankScore / maxScore) * 100,
+        apDiffScore: `${rankScore - maxScore}`,
+        accuracyScore: accuracyScore,
+        comboState: comboState,
       };
 
       return row;
     })
-    .sort((a, b) => a.title.localeCompare(b.title));
+    .sort(defaultSortComparator);
 
-  return scoreRecords.filter((rec) => {
-    return Filters.title(rec.title) && Filters.difficulty(rec.difficulty) && Filters.level(rec.level);
-  });
+  return scoreRecords.filter((rec) => Object.values(Filters).every((filter) => filter(rec)));
 });
+
+/** 初期ソート評価関数 */
+const defaultSortComparator = (a: RowItem, b: RowItem): number => {
+  if (a.musicId !== b.musicId) {
+    return a.musicId - b.musicId;
+  }
+  return (
+    DifficultyRankList.findIndex((diff) => diff === a.difficulty) -
+    DifficultyRankList.findIndex((diff) => diff === b.difficulty)
+  );
+};
 </script>
