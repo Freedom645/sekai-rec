@@ -56,7 +56,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, defineEmits, type PropType, computed } from 'vue';
+import { ref, defineEmits, type PropType, computed, onBeforeMount } from 'vue';
 import { useDisplay } from 'vuetify';
 import { VPagination, VSelect, VProgressLinear, VContainer } from 'vuetify/components';
 import { VDataTable } from 'vuetify/labs/VDataTable';
@@ -66,7 +66,6 @@ import { DifficultyRankList, type DifficultyRank as Difficulty } from '@/model/G
 import { Accuracy, calcRankMatchScore } from '@/model/Score';
 import type { FilterCondition } from '@/model/Filter';
 import { useScoreStore } from '@/stores/ScoreStore';
-import { onMounted } from 'vue';
 
 const headers = [
   { title: '', align: 'center', sortable: false, key: 'jacketUrl' },
@@ -142,8 +141,8 @@ const customKeySort: Record<string, (a: any, b: any) => number> = {
   },
 };
 
-onMounted(() => {
-  fetchAllData();
+onBeforeMount(async () => {
+  await fetchAllData();
 });
 
 const items = computed(() => {
