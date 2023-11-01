@@ -141,11 +141,19 @@ const customKeySort: Record<string, (a: any, b: any) => number> = {
     return DifficultyRankList.findIndex((d) => d === left) - DifficultyRankList.findIndex((d) => d === right);
   },
   accuracyScore: (left: number[], right: number[]) => {
-    const diffIndex = left.findIndex((v, i) => v !== right[i]);
-    if (diffIndex === -1) {
-      return 0;
+    const weight = [1, 2, 3, 3];
+    const leftW = weight.reduce((sum, w, i) => sum + left[i] * w, 0);
+    const rightW = weight.reduce((sum, w, i) => sum + right[i] * w, 0);
+    if (leftW !== rightW) {
+      return leftW - rightW;
     }
-    return left[diffIndex] - right[diffIndex];
+
+    for (let i = 0; i < 4; i++) {
+      if (left[3 - i] !== right[3 - i]) {
+        return left[3 - i] - right[3 - i];
+      }
+    }
+    return 0;
   },
 };
 
