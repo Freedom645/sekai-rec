@@ -23,14 +23,14 @@
       <v-row v-show="showFilter">
         <v-col>
           <v-card elevation="4">
-            <MusicFilter @apply="applyFilter($event)" />
+            <MusicFilter />
           </v-card>
         </v-col>
       </v-row>
     </v-expand-transition>
     <v-row>
       <v-col>
-        <ScoreTable :filter-condition="filterCondition" @click-row="clickMusicRecord($event)" />
+        <ScoreTable @click-row="clickMusicRecord($event)" />
       </v-col>
     </v-row>
     <high-score-modal
@@ -49,16 +49,10 @@ import ScoreTable from '@/components/ScoreTable/ScoreTable.vue';
 import HighScoreModal from '@/components/ScoreDetail/HighScoreModal.vue';
 import ColumnSelectorModal from '@/components/ScoreTable/ColumnSelectorModal.vue';
 import { DifficultyRank } from '@/model/Game';
-import { emptyCondition, type FilterCondition } from '@/model/Filter';
-import { useMusicStore } from '@/stores/MusicStore';
 import { reactive } from 'vue';
 import { nextTick } from 'vue';
 
-// const router = useRouter();
-const { maxLevel } = useMusicStore();
-
 const showFilter = ref(false);
-const filterCondition = ref(emptyCondition(maxLevel));
 
 const scoreDetailModalState = reactive({
   isOpen: false,
@@ -69,10 +63,6 @@ const scoreDetailModalState = reactive({
 const columnSelectorModalState = reactive({
   isOpen: false,
 });
-
-const applyFilter = (event: FilterCondition) => {
-  filterCondition.value = event;
-};
 
 const clickMusicRecord = async (event: { id: number; diff: DifficultyRank }) => {
   // router.push({ path: `/score/${event.id}/${event.diff}` });

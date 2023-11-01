@@ -57,7 +57,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, defineEmits, type PropType, computed, onBeforeMount } from 'vue';
+import { ref, defineEmits, computed, onBeforeMount } from 'vue';
 import { useDisplay } from 'vuetify';
 import { VPagination, VSelect, VProgressLinear, VContainer } from 'vuetify/components';
 import { VDataTable } from 'vuetify/labs/VDataTable';
@@ -65,7 +65,6 @@ import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import { useMusicStore } from '@/stores/MusicStore';
 import { DifficultyRankList, type DifficultyRank as Difficulty } from '@/model/Game';
 import { Accuracy, calcRankMatchScore } from '@/model/Score';
-import type { FilterCondition } from '@/model/Filter';
 import { useScoreStore } from '@/stores/ScoreStore';
 import { useSettingsStore } from '@/stores/SettingsStore';
 
@@ -85,33 +84,25 @@ const { findMusic } = useMusicStore();
 const { fetchAllData, allData } = useScoreStore();
 const { scoreView } = useSettingsStore();
 
-// props
-const props = defineProps({
-  filterCondition: {
-    type: Object as PropType<FilterCondition>,
-    required: true,
-  },
-});
-
 // emits
 const emits = defineEmits<{ (e: 'clickRow', value: { id: number; diff: Difficulty }): void }>();
 const Filters: Record<string, (row: RowItem) => boolean> = {
   title: (row): boolean =>
-    props.filterCondition.musicTitle === '' || row.title.includes(props.filterCondition.musicTitle),
-  difficulty: (row): boolean => props.filterCondition.difficultyCheckState[row.difficulty],
+    scoreView.filterCondition.musicTitle === '' || row.title.includes(scoreView.filterCondition.musicTitle),
+  difficulty: (row): boolean => scoreView.filterCondition.difficultyCheckState[row.difficulty],
   level: (row): boolean =>
-    props.filterCondition.level.low <= row.level && row.level <= props.filterCondition.level.high,
+    scoreView.filterCondition.level.low <= row.level && row.level <= scoreView.filterCondition.level.high,
   fullCombo: (row) => {
-    if (props.filterCondition.fullCombo === 'none') {
+    if (scoreView.filterCondition.fullCombo === 'none') {
       return true;
     }
-    return (props.filterCondition.fullCombo === 'include') !== (row.comboState === 'none');
+    return (scoreView.filterCondition.fullCombo === 'include') !== (row.comboState === 'none');
   },
   allPerfect: (row) => {
-    if (props.filterCondition.allPerfect === 'none') {
+    if (scoreView.filterCondition.allPerfect === 'none') {
       return true;
     }
-    return (props.filterCondition.allPerfect !== 'include') !== (row.comboState === 'ap');
+    return (scoreView.filterCondition.allPerfect !== 'include') !== (row.comboState === 'ap');
   },
 };
 
