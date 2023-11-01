@@ -80,7 +80,7 @@ const defaultHeaders = [
 ];
 
 const { xs } = useDisplay();
-const { findMusic } = useMusicStore();
+const { findMusic, musicList } = useMusicStore();
 const { fetchAllData, allData } = useScoreStore();
 const { scoreView } = useSettingsStore();
 
@@ -166,11 +166,28 @@ const headers = computed(() => {
 });
 
 const items = computed(() => {
-  const scoreRecords: RowItem[] = allData
-    .flatMap((score) => {
-      const music = findMusic(score.musicId);
-      const diff = music?.getDifficulty(score.difficulty);
-      if (music === undefined || diff === undefined) {
+  const scoreRecords: RowItem[] = musicList
+    .flatMap((music) => music.difficulties.map((diff) => ({ music, diff })))
+    .flatMap(({ music, diff }) => {
+      const musicIdPad = ('000' + music.id.toString()).slice(-3);
+
+      const score = allData.find((data) => data.musicId === music.id && data.difficulty === diff.rank);
+      if (score === undefined) {
+        if (scoreView.filterCondition.showUnregister) {
+          const row: RowItem = {
+            musicId: music.id,
+            jacketUrl: `https://storage.sekai.best/sekai-assets/music/jacket/jacket_s_${musicIdPad}_rip/jacket_s_${musicIdPad}.webp`,
+            title: music.title,
+            difficulty: diff.rank,
+            level: diff.level,
+            rankMatchScore: 0,
+            scoreRate: 0,
+            apDiffScore: '-',
+            accuracyScore: [0, 0, 0, 0],
+            comboState: 'none',
+          };
+          return row;
+        }
         return [];
       }
 
@@ -180,8 +197,6 @@ const items = computed(() => {
       const accuracyScore = [Accuracy.GREAT, Accuracy.GOOD, Accuracy.BAD, Accuracy.MISS].map(
         (acc) => score.accuracyCount[acc]
       );
-
-      const musicIdPad = ('000' + score.musicId.toString()).slice(-3);
 
       const comboState = maxScore === rankScore ? 'ap' : score.combo === diff.noteCount ? 'fc' : 'none';
 

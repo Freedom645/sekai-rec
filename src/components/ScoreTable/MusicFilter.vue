@@ -90,6 +90,15 @@
         </v-radio-group>
       </v-col>
     </v-row>
+    <v-row>
+      <v-col cols="3">未登録楽曲</v-col>
+      <v-col>
+        <v-radio-group v-model="filterCondition.showUnregister" inline hide-details>
+          <v-radio label="表示する" :value="true" color="normal" />
+          <v-radio label="表示しない" :value="false" color="normal" />
+        </v-radio-group>
+      </v-col>
+    </v-row>
     <v-row justify="end">
       <v-col class="d-flex flex-row justify-end">
         <v-btn class="mr-3" color="primary" @click="clickApplyButton()">適用</v-btn>

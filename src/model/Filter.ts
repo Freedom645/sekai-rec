@@ -9,6 +9,7 @@ export interface FilterCondition {
   };
   fullCombo: 'none' | 'include' | 'exclude';
   allPerfect: 'none' | 'include' | 'exclude';
+  showUnregister: boolean;
 }
 
 export const emptyCondition = (maxLevel: number): FilterCondition => ({
@@ -23,6 +24,7 @@ export const emptyCondition = (maxLevel: number): FilterCondition => ({
   },
   fullCombo: 'none',
   allPerfect: 'none',
+  showUnregister: false,
 });
 
 abstract class Filter<T> {
