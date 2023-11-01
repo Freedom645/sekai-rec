@@ -7,18 +7,22 @@ export interface FilterCondition {
     low: number;
     high: number;
   };
+  fullCombo: 'none' | 'include' | 'exclude';
+  allPerfect: 'none' | 'include' | 'exclude';
 }
 
 export const emptyCondition = (maxLevel: number): FilterCondition => ({
   musicTitle: '',
-  difficultyCheckState: DifficultyRankList.reduce((pre, cur) => {
-    pre[cur] = true;
-    return pre;
-  }, {} as { [key: string]: boolean }),
+  difficultyCheckState: DifficultyRankList.reduce(
+    (pre, cur) => Object.assign(pre, { [cur]: true }),
+    {} as { [key: string]: boolean }
+  ),
   level: {
     low: 1,
     high: maxLevel,
   },
+  fullCombo: 'none',
+  allPerfect: 'none',
 });
 
 abstract class Filter<T> {
