@@ -10,6 +10,7 @@
     hide-default-footer
     fixed-header
     multiSort
+    noDataText="データがありません。"
     @click:row="(_: any, row: any) => emits('clickRow', { id: row.item.raw.musicId, diff: row.item.raw.difficulty })"
   >
     <template v-slot:item.jacketUrl="props">
@@ -66,8 +67,9 @@ import { DifficultyRankList, type DifficultyRank as Difficulty } from '@/model/G
 import { Accuracy, calcRankMatchScore } from '@/model/Score';
 import type { FilterCondition } from '@/model/Filter';
 import { useScoreStore } from '@/stores/ScoreStore';
+import { useSettingsStore } from '@/stores/SettingsStore';
 
-const headers = [
+const defaultHeaders = [
   { title: '', align: 'center', sortable: false, key: 'jacketUrl' },
   { title: '楽曲名', align: 'start', sortable: true, key: 'title' },
   { title: '難易度', align: 'start', sortable: true, key: 'difficulty' },
@@ -81,6 +83,7 @@ const headers = [
 const { xs } = useDisplay();
 const { findMusic } = useMusicStore();
 const { fetchAllData, allData } = useScoreStore();
+const { scoreView } = useSettingsStore();
 
 // props
 const props = defineProps({
@@ -157,6 +160,10 @@ const customKeySort: Record<string, (a: any, b: any) => number> = {
 
 onBeforeMount(async () => {
   await fetchAllData();
+});
+
+const headers = computed(() => {
+  return defaultHeaders.filter((h) => scoreView.columns.some((c) => c === h.key));
 });
 
 const items = computed(() => {

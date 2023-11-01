@@ -2,16 +2,21 @@
   <v-container>
     <h2>ハイスコア一覧</h2>
     <v-row class="mt-5">
-      <v-col>
+      <v-col class="d-flex justify-space-between">
         <v-btn
           class="mr-3"
-          color="normal"
-          elevation="4"
-          prepend-icon="mdi-filter-multiple"
+          variant="tonal"
+          color="secondary"
+          icon="mdi-filter-multiple-outline"
           @click="() => (showFilter = !showFilter)"
         >
-          フィルタ
         </v-btn>
+        <v-btn
+          color="normal"
+          variant="tonal"
+          icon="mdi-cog-outline"
+          @click="() => (columnSelectorModalState.isOpen = true)"
+        />
       </v-col>
     </v-row>
     <v-expand-transition>
@@ -29,10 +34,11 @@
       </v-col>
     </v-row>
     <high-score-modal
-      v-model:is-open="modalState.isOpen"
-      :music-id="modalState.musicId"
-      :difficulty="modalState.difficulty"
+      v-model:is-open="scoreDetailModalState.isOpen"
+      :music-id="scoreDetailModalState.musicId"
+      :difficulty="scoreDetailModalState.difficulty"
     />
+    <ColumnSelectorModal v-model:is-open="columnSelectorModalState.isOpen" />
   </v-container>
 </template>
 <script lang="ts" setup>
@@ -41,6 +47,7 @@ import { VContainer, VRow, VCol, VBtn, VExpandTransition, VCard } from 'vuetify/
 import MusicFilter from '@/components/ScoreTable/MusicFilter.vue';
 import ScoreTable from '@/components/ScoreTable/ScoreTable.vue';
 import HighScoreModal from '@/components/ScoreDetail/HighScoreModal.vue';
+import ColumnSelectorModal from '@/components/ScoreTable/ColumnSelectorModal.vue';
 import { DifficultyRank } from '@/model/Game';
 import { emptyCondition, type FilterCondition } from '@/model/Filter';
 import { useMusicStore } from '@/stores/MusicStore';
@@ -53,10 +60,14 @@ const { maxLevel } = useMusicStore();
 const showFilter = ref(false);
 const filterCondition = ref(emptyCondition(maxLevel));
 
-const modalState = reactive({
+const scoreDetailModalState = reactive({
   isOpen: false,
   musicId: 0,
   difficulty: DifficultyRank.MASTER as DifficultyRank,
+});
+
+const columnSelectorModalState = reactive({
+  isOpen: false,
 });
 
 const applyFilter = (event: FilterCondition) => {
@@ -65,9 +76,9 @@ const applyFilter = (event: FilterCondition) => {
 
 const clickMusicRecord = async (event: { id: number; diff: DifficultyRank }) => {
   // router.push({ path: `/score/${event.id}/${event.diff}` });
-  modalState.musicId = event.id;
-  modalState.difficulty = event.diff;
+  scoreDetailModalState.musicId = event.id;
+  scoreDetailModalState.difficulty = event.diff;
   await nextTick();
-  modalState.isOpen = true;
+  scoreDetailModalState.isOpen = true;
 };
 </script>
