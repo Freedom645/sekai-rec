@@ -1,7 +1,7 @@
 export const ComboState = {
-  AP: 'AllPerfect',
-  FC: 'FullCombo',
-  NONE: 'None',
+  AP: 'ap',
+  FC: 'fc',
+  NONE: 'none',
 } as const;
 
 export type ComboState = (typeof ComboState)[keyof typeof ComboState];

@@ -30,12 +30,31 @@ a,
   --game-accuracy-late: #FF5488;
   --game-accuracy-fast: #53AAFF;
   --game-accuracy-flick: #ece92a;
+
 }
 
 .game-accuracy-perfect {
   display: inline-block;
   background: linear-gradient(-90deg, #E369BC 10%, #8686F7 60%, #8CFFF5);
   background: -webkit-linear-gradient(-90deg, #E369BC 10%, #8686F7 60%, #8CFFF5);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.game-combo-state-ap {
+  display: inline-block;
+  background: linear-gradient(-90deg, #EBBAE8 25%, #BEDEFA 50%, #D5FDEA 75%, #ECECD7);
+  background: -webkit-linear-gradient(-90deg, #EBBAE8 25%, #BEDEFA 50%, #D5FDEA 75%, #ECECD7);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.game-combo-state-fc {
+  display: inline-block;
+  background: linear-gradient(-90deg, #E369BC 30%, #F3B8ED 60%, #E2C9ED);
+  background: -webkit-linear-gradient(-90deg, #E369BC 30%, #F3B8ED 60%, #E2C9ED);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

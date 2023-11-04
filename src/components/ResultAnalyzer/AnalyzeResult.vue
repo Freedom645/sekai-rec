@@ -108,17 +108,12 @@ import ScoreDataChecker from '@/components/DataChecker/ScoreDataChecker.vue';
 import ScoreEditorModal from './ScoreEditorModal.vue';
 import { useAnalyzerStore } from '@/stores/AnalyzerStore';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
-import { useProgressOverlay } from '@/composables/useProgressOverlay';
-import { useScoreStore } from '@/stores/ScoreStore';
 import { Checker } from '@/module/Corrector';
 import { useMusicStore } from '@/stores/MusicStore';
-import { Score } from '@/domain/entity/Score';
 
 const { completedData } = useAnalyzerStore();
-const { upsertData } = useScoreStore();
 const { findMusic } = useMusicStore();
-const { confirm, notice } = useConfirmDialog();
-const { show, hidden } = useProgressOverlay();
+const { notice } = useConfirmDialog();
 
 const window = ref(0);
 const editorIsOpen = ref(false);
@@ -169,44 +164,5 @@ const next = () => {
   }
 
   emits('next');
-};
-
-const complete = async () => {
-  const registerCount = completedData.urls.filter((_, index) => !completedData.isUnregister[index]).length;
-  const isUnregisterCount = completedData.urls.filter((_, index) => !!completedData.isUnregister[index]).length;
-
-  const warnings = [
-    `<li>曲数：${completedData.urls.length}曲</li>`,
-    `<li>登録曲数：${registerCount}曲（データ不正：${illegalityDataIndex.value.length}曲）</li>`,
-    `<li>除外数：${isUnregisterCount}曲</li>`,
-  ];
-
-  const message = `<p>スコアを登録します。よろしいですか？</p><br><div><ul>${warnings.join('')}</ul></div>`;
-  if (!(await confirm({ title: '登録確認', text: message, ok: '登録', cancel: 'キャンセル' }))) {
-    return;
-  }
-
-  try {
-    show();
-    const registerTargets = completedData.scoreData
-      .filter((_, index) => !completedData.isUnregister[index])
-      .map(
-        (data) =>
-          new Score({
-            musicId: data.musicId,
-            difficulty: data.difficulty,
-            combo: data.combo,
-            accuracy: data.accuracy,
-            judgement: data.judgement,
-          })
-      );
-    await upsertData(registerTargets);
-    notice({ title: '登録完了', text: `登録が完了しました。` });
-  } catch (e) {
-    const errorMessage = (e as Object)?.toString() ?? 'Unknown Error';
-    notice({ title: '登録エラー', text: `登録エラーが発生しました。<br>${errorMessage}` });
-  } finally {
-    hidden();
-  }
 };
 </script>

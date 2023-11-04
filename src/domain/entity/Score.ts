@@ -110,7 +110,7 @@ export class Score {
    */
   public compare(other: Score): number {
     // スコアで比較
-    const diffScore = this.calcRankMatchScore() - other.calcRankMatchScore();
+    const diffScore = other.calcRankMatchScore() - this.calcRankMatchScore();
     if (diffScore !== 0) {
       return diffScore;
     }
@@ -118,11 +118,11 @@ export class Score {
     // 精度で比較
     const diffAccuracy = AccuracyList.find((key) => this.accuracy[key] !== other.accuracy[key]);
     if (diffAccuracy !== undefined) {
-      return this.accuracy[diffAccuracy] - other.accuracy[diffAccuracy];
+      return other.accuracy[diffAccuracy] - this.accuracy[diffAccuracy];
     }
 
     // コンボで比較
-    return this.combo - other.combo;
+    return other.combo - this.combo;
   }
 
   /**

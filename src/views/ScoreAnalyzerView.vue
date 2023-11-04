@@ -26,8 +26,11 @@ import { VStepper, VStepperHeader, VStepperItem, VStepperWindow, VStepperWindowI
 import AnalyzeSetting, { type Settings } from '@/components/ResultAnalyzer/AnalyzeSetting.vue';
 import AnalyzeProgress from '@/components/ResultAnalyzer/AnalyzeProgress.vue';
 import AnalyzeResult from '@/components/ResultAnalyzer/AnalyzeResult.vue';
+import AnalyzeUpdateTable from '@/components/ResultAnalyzer/AnalyzeUpdateTable.vue';
 import { useAnalyzerStore } from '@/stores/AnalyzerStore';
+import { useScoreStore } from '@/stores/ScoreStore';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
+import { onMounted } from 'vue';
 
 const {
   setSettings,
@@ -35,6 +38,7 @@ const {
   progress: { errorText },
   completedData: { scoreData },
 } = useAnalyzerStore();
+const { fetchAllData } = useScoreStore();
 
 const { notice } = useConfirmDialog();
 
@@ -42,10 +46,12 @@ const stepperItems = [
   { title: '1. 設定', value: 0, rules: [() => true], component: AnalyzeSetting },
   { title: '2. 解析', value: 1, rules: [() => true], component: AnalyzeProgress },
   { title: '3. 結果修正', value: 2, rules: [() => errorText === ''], component: AnalyzeResult },
-  { title: '4. 確認', value: 3, rules: [() => true], component: undefined },
+  { title: '4. 確認', value: 3, rules: [() => true], component: AnalyzeUpdateTable },
 ];
 
 const step = ref(0);
+
+onMounted(() => fetchAllData());
 
 const submitSettings = async (arg: Settings) => {
   step.value = 1;
