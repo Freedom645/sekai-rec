@@ -18,7 +18,7 @@
                 </v-col>
                 <v-col cols="12" lg="7">
                   <v-radio-group v-model="scoreData.difficulty" inline>
-                    <v-radio v-for="rank in DifficultyRankList" :key="rank" :label="rank" :value="rank">
+                    <v-radio v-for="rank in DifficultyList" :key="rank" :label="rank" :value="rank">
                       <template v-slot:label>
                         <difficulty-rank :difficulty="rank" />
                       </template>
@@ -32,7 +32,7 @@
                   <v-text-field
                     type="number"
                     :rules="AccuracyRules"
-                    v-model.number="scoreData.accuracyCount[acc]"
+                    v-model.number="scoreData.accuracy[acc]"
                     density="compact"
                   />
                 </v-col>
@@ -52,7 +52,7 @@
                     type="number"
                     :label="input.name"
                     :rules="ScoreDetailRules"
-                    v-model.number="scoreData.judgmentCount[input.key]"
+                    v-model.number="scoreData.judgement[input.key]"
                     density="compact"
                   />
                 </v-col>
@@ -62,8 +62,8 @@
                   <score-data-checker
                     :music-id="scoreData.musicId"
                     :difficulty="scoreData.difficulty"
-                    :accuracy-count="scoreData.accuracyCount"
-                    :judgment-count="scoreData.judgmentCount"
+                    :accuracy-count="scoreData.accuracy"
+                    :judgment-count="scoreData.judgement"
                     :combo="scoreData.combo"
                   />
                 </v-col>
@@ -82,15 +82,16 @@
 </template>
 <script setup lang="ts">
 import { defineProps, ref, watch } from 'vue';
-import type { ScoreData } from '@/model/Score';
 import { useAnalyzerStore } from '@/stores/AnalyzerStore';
 import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import MusicAutocomplete from '@/components/atomic/MusicAutocomplete.vue';
 import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
 import ScoreDataChecker from '@/components/DataChecker/ScoreDataChecker.vue';
-import { DifficultyRankList } from '@/model/Game';
-import { AccuracyList, type JudgmentCount, emptyScoreData, cloneScoreData } from '@/model/Score';
 import { useMusicStore } from '@/stores/MusicStore';
+import { Score, type JudgmentCount } from '@/domain/entity/Score';
+import type { RegistrationScore } from '@/domain/entity/RegistrationScore';
+import { AccuracyList } from '@/domain/value/Accuracy';
+import { DifficultyList } from '@/domain/value/Difficulty';
 
 const ScoreDetailInputs: Array<{ name: string; key: keyof JudgmentCount }> = [
   { name: 'Late', key: 'late' },
@@ -127,7 +128,7 @@ const props = defineProps({
 const emits = defineEmits<{ (e: 'update:isOpen', isOpen: boolean): void }>();
 
 const musicTitle = ref('');
-const scoreData = ref<ScoreData>(emptyScoreData());
+const scoreData = ref<RegistrationScore>(Score.emptyScoreData());
 const resultImage = ref('');
 
 watch(
@@ -137,9 +138,9 @@ watch(
       return;
     }
     resultImage.value = getUrlData(props.index) ?? '';
-    const data = getScoreData(props.index) ?? emptyScoreData();
+    const data = getScoreData(props.index) ?? Score.emptyScoreData();
 
-    scoreData.value = cloneScoreData(data);
+    scoreData.value = data;
     musicTitle.value = findMusic(data.musicId)?.title ?? '';
   }
 );

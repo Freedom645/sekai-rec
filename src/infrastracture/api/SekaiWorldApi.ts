@@ -1,12 +1,14 @@
 import { BaseAPI } from './ApiModule';
-import { Difficulty, Music } from '@/model/Game';
+import { Music } from '@/domain/entity/Music';
+import { MusicDifficulty } from '@/domain/entity/MusicDifficulty';
+import type { IMusicRepository } from '@/domain/repository/MusicRepository';
 
-class SekaiWorldAPI extends BaseAPI {
+class SekaiWorldAPI extends BaseAPI implements IMusicRepository {
   constructor() {
     super('https://sekai-world.github.io/sekai-master-db-diff');
   }
 
-  public async getMusics(): Promise<Music[]> {
+  public async fetchAllData(): Promise<Music[]> {
     const requestTasks = [
       super.get<ResponseMusic[]>('/musics.json'),
       super.get<ResponseMusicDifficulties[]>('/musicDifficulties.json'),
@@ -21,11 +23,11 @@ class SekaiWorldAPI extends BaseAPI {
       const musicId = curr.musicId;
       const diffList = pre[musicId] ?? [];
       diffList.push(
-        new Difficulty({ level: curr.playLevel, rank: curr.musicDifficulty, noteCount: curr.totalNoteCount })
+        new MusicDifficulty({ level: curr.playLevel, rank: curr.musicDifficulty, noteCount: curr.totalNoteCount })
       );
       pre[musicId] = diffList;
       return pre;
-    }, {} as { [id: number]: Difficulty[] });
+    }, {} as { [id: number]: MusicDifficulty[] });
 
     return musicsJson.map((music) => {
       return new Music({ musicId: music.id, title: music.title, difficulties: diff[music.id] });

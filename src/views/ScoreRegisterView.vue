@@ -7,7 +7,7 @@
       </v-col>
       <v-col cols="12" md="7">
         <v-radio-group v-model="state.difficulty" inline>
-          <v-radio v-for="rank in DifficultyRankList" :key="rank" :label="rank" :value="rank">
+          <v-radio v-for="rank in DifficultyList" :key="rank" :label="rank" :value="rank">
             <template v-slot:label>
               <difficulty-rank :difficulty="rank" />
             </template>
@@ -75,12 +75,14 @@ import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import MusicAutocomplete from '@/components/atomic/MusicAutocomplete.vue';
 import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
 import ScoreDataChecker from '@/components/DataChecker/ScoreDataChecker.vue';
-import { DifficultyRankList, DifficultyRank as Difficulty } from '@/model/Game';
-import { AccuracyList, Accuracy, type ScoreData, type AccuracyCount, type JudgmentCount } from '@/model/Score';
 import { useMusicStore } from '@/stores/MusicStore';
 import { useScoreStore } from '@/stores/ScoreStore';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { useProgressOverlay } from '@/composables/useProgressOverlay';
+import { Score } from '@/domain/entity/Score';
+import { Accuracy, AccuracyList } from '@/domain/value/Accuracy';
+import type { AccuracyCount, JudgmentCount } from '@/domain/entity/Score';
+import { Difficulty, DifficultyList } from '@/domain/value/Difficulty';
 
 const ScoreDetailInputs: Array<{ name: string; key: keyof JudgmentCount }> = [
   { name: 'Late', key: 'late' },
@@ -131,7 +133,7 @@ watch(
 );
 
 const registerScore = async () => {
-  if (music.value?.id === undefined || difficulty.value?.rank === undefined) {
+  if (music.value?.id === undefined || difficulty.value?.diff === undefined) {
     return;
   }
 
@@ -142,13 +144,13 @@ const registerScore = async () => {
   try {
     showProgress();
 
-    const scoreData: ScoreData = {
+    const scoreData = new Score({
       musicId: music.value.id,
-      difficulty: difficulty.value.rank,
+      difficulty: difficulty.value.diff,
       combo: state.combo ?? 0,
-      accuracyCount: { ...state.accuracyCount },
-      judgmentCount: { ...state.judgmentCount },
-    };
+      accuracy: { ...state.accuracyCount },
+      judgement: { ...state.judgmentCount },
+    });
 
     await upsertData(scoreData);
   } finally {

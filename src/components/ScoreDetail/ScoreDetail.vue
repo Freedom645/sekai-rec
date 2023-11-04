@@ -13,34 +13,31 @@
             <accuracy-label :value="accuracy" />
           </v-col>
           <v-col cols="6">
-            <zero-padding :combo="score?.accuracyCount[accuracy]" :length="4" />
+            <zero-padding :combo="score.accuracy[accuracy]" :length="4" />
           </v-col>
         </v-row>
       </v-col>
       <v-col cols="8" sm="4">
-        <l-f-rate
-          :late="score?.judgmentCount[Judgment.LATE]"
-          :fast="score?.judgmentCount[Judgment.FAST]"
-          :height="20"
-        />
-        <flick-label :count="score?.judgmentCount[Judgment.FLICK]" />
+        <l-f-rate :late="score.judgement[Judgment.LATE]" :fast="score.judgement[Judgment.FAST]" :height="20" />
+        <flick-label :count="score.judgement[Judgment.FLICK]" />
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, type PropType } from 'vue';
 import { VContainer, VRow, VCol } from 'vuetify/components';
 import ZeroPadding from '@/components/atomic/ZeroPadding.vue';
 import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
 import ComboLabel from '@/components/atomic/ComboLabel.vue';
-import LFRate from '../atomic/LFRate.vue';
-import FlickLabel from '../atomic/FlickLabel.vue';
-import { AccuracyList, Judgment, type ScoreData } from '@/model/Score';
+import LFRate from '@/components/atomic/LFRate.vue';
+import FlickLabel from '@/components/atomic/FlickLabel.vue';
 import { useScoreStore } from '@/stores/ScoreStore';
-import type { DifficultyRank } from '@/model/Game';
-import type { PropType } from 'vue';
+import { Score } from '@/domain/entity/Score';
+import type { Difficulty } from '@/domain/value/Difficulty';
+import { AccuracyList } from '@/domain/value/Accuracy';
+import { Judgment } from '@/domain/value/Judgement';
 
 const props = defineProps({
   musicId: {
@@ -48,15 +45,15 @@ const props = defineProps({
     required: true,
   },
   difficulty: {
-    type: String as PropType<DifficultyRank>,
+    type: String as PropType<Difficulty>,
     required: true,
   },
-  scoreData: {
-    type: Object as PropType<ScoreData>,
+  score: {
+    type: Object as PropType<Score>,
   },
 });
 
 const { findScore } = useScoreStore();
 
-const score = computed(() => props.scoreData ?? findScore(props.musicId, props.difficulty));
+const score = computed(() => props.score ?? findScore(props.musicId, props.difficulty) ?? Score.emptyScoreData());
 </script>

@@ -46,10 +46,10 @@
 <script setup lang="ts">
 import { type PropType, computed } from 'vue';
 import { VContainer, VRow, VCol } from 'vuetify/components';
-import type { DifficultyRank } from '@/model/Game';
-import type { AccuracyCount, JudgmentCount, ScoreData } from '@/model/Score';
 import { Checker } from '@/module/Corrector';
 import { useMusicStore } from '@/stores/MusicStore';
+import { Score, type AccuracyCount, type JudgmentCount } from '@/domain/entity/Score';
+import type { Difficulty } from '@/domain/value/Difficulty';
 
 const { findMusic } = useMusicStore();
 
@@ -58,7 +58,7 @@ const props = defineProps({
     type: Number,
   },
   difficulty: {
-    type: String as PropType<DifficultyRank>,
+    type: String as PropType<Difficulty>,
   },
   combo: {
     type: Number,
@@ -92,13 +92,13 @@ const errors = computed(() => {
       return resObj;
     }
 
-    const scoreData: ScoreData = {
+    const scoreData = new Score({
       musicId: props.musicId,
       difficulty: props.difficulty,
       combo: props.combo,
-      accuracyCount: props.accuracyCount,
-      judgmentCount: props.judgmentCount,
-    };
+      accuracy: props.accuracyCount,
+      judgement: props.judgmentCount,
+    });
 
     resObj[key] = Checker[key].validator(music, scoreData);
     return resObj;

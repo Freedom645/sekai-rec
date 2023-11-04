@@ -1,9 +1,11 @@
 import { analyze, generateThresholdUrls } from '@/module/ScoreAnalyzer';
 import { defineStore } from 'pinia';
 import { useMusicStore } from './MusicStore';
-import { Accuracy, Judgment, type ScoreData } from '@/model/Score';
 import { type AnalyzeRecord, Element, type Preset, type ThresholdNumber, type ThresholdString } from '@/model/Analyze';
-import { DifficultyRank, DifficultyRankList } from '@/model/Game';
+import { RegistrationScore } from '@/domain/entity/RegistrationScore';
+import { Accuracy } from '@/domain/value/Accuracy';
+import { Judgment } from '@/domain/value/Judgement';
+import { Difficulty, DifficultyList } from '@/domain/value/Difficulty';
 
 export interface Settings {
   files: File[];
@@ -41,7 +43,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
     completedData: {
       urls: [] as string[],
       thresholdUrls: [] as ThresholdString[],
-      scoreData: [] as ScoreData[],
+      scoreData: [] as RegistrationScore[],
       isUnregister: [] as boolean[],
     },
   }),
@@ -49,7 +51,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
     getProgress: (state) => state.progress,
     getScoreData:
       (state) =>
-      (index: number): ScoreData | undefined =>
+      (index: number): RegistrationScore | undefined =>
         state.completedData.scoreData[index],
     getUrlData:
       (state) =>
@@ -98,7 +100,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
       this.progress.threshold = 100;
       return thresholdUrls;
     },
-    correcting(records: AnalyzeRecord[]): ScoreData[] {
+    correcting(records: AnalyzeRecord[]): RegistrationScore[] {
       const { searchFuzzy } = useMusicStore();
       let comp = 0;
       const scoreDataList = records.map((rec) => {
@@ -107,26 +109,25 @@ export const useAnalyzerStore = defineStore('analyzer', {
         comp++;
         this.progress.correct = ((records.length - comp) * 100) / records.length;
 
-        // TODO 変換はここでやることではない
-        const scoreData: ScoreData = {
+        const scoreData = new RegistrationScore({
           musicId: list[0].musicId,
           difficulty:
-            DifficultyRankList.find((diff) => diff.toUpperCase() === rec[Element.DIFFICULT].toUpperCase()) ??
-            DifficultyRank.EASY,
+            DifficultyList.find((diff) => diff.toUpperCase() === rec[Element.DIFFICULT].toUpperCase()) ??
+            Difficulty.EASY,
           combo: Number.parseInt(rec[Element.COMBO]),
-          accuracyCount: {
+          accuracy: {
             [Accuracy.PERFECT]: Number.parseInt(rec[Element.PERFECT]),
             [Accuracy.GREAT]: Number.parseInt(rec[Element.GREAT]),
             [Accuracy.GOOD]: Number.parseInt(rec[Element.GOOD]),
             [Accuracy.BAD]: Number.parseInt(rec[Element.BAD]),
             [Accuracy.MISS]: Number.parseInt(rec[Element.MISS]),
           },
-          judgmentCount: {
+          judgement: {
             [Judgment.LATE]: Number.parseInt(rec[Element.LATE]),
             [Judgment.FAST]: Number.parseInt(rec[Element.FAST]),
             [Judgment.FLICK]: Number.parseInt(rec[Element.FLICK]),
           },
-        };
+        });
 
         return scoreData;
       });
@@ -181,7 +182,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
         return this.progress.errorText;
       }
     },
-    fixScoreData(index: number, scoreData: ScoreData): void {
+    fixScoreData(index: number, scoreData: RegistrationScore): void {
       if (index < 0 || this.completedData.scoreData.length <= index) {
         throw new Error('Implementation error.');
       }

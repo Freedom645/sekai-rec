@@ -88,8 +88,8 @@
                     v-if="completedData.scoreData[index]"
                     :music-id="completedData.scoreData[index].musicId"
                     :difficulty="completedData.scoreData[index].difficulty"
-                    :accuracy-count="completedData.scoreData[index].accuracyCount"
-                    :judgment-count="completedData.scoreData[index].judgmentCount"
+                    :accuracy-count="completedData.scoreData[index].accuracy"
+                    :judgment-count="completedData.scoreData[index].judgement"
                     :combo="completedData.scoreData[index].combo"
                     openIfError
                   />
@@ -115,9 +115,9 @@ import { useAnalyzerStore } from '@/stores/AnalyzerStore';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { useProgressOverlay } from '@/composables/useProgressOverlay';
 import { useScoreStore } from '@/stores/ScoreStore';
-import { cloneScoreData } from '@/model/Score';
 import { Checker } from '@/module/Corrector';
 import { useMusicStore } from '@/stores/MusicStore';
+import { Score } from '@/domain/entity/Score';
 
 const { completedData } = useAnalyzerStore();
 const { upsertData } = useScoreStore();
@@ -138,6 +138,9 @@ const illegalityDataIndex = computed(() =>
     const music = findMusic(data.musicId);
     if (music === undefined) {
       return index;
+    }
+    if (completedData.isUnregister[index]) {
+      return [];
     }
     if (Object.values(Checker).every((v) => v.validator(music, data) === '')) {
       return [];
@@ -163,8 +166,9 @@ const complete = async () => {
   const isUnregisterCount = completedData.urls.filter((_, index) => !!completedData.isUnregister[index]).length;
 
   const warnings = [
-    `<li>登録曲数：${registerCount}曲 (除外数：${isUnregisterCount}曲)</li>`,
-    `<li>データ不正：${illegalityDataIndex.value.length}曲</li>`,
+    `<li>曲数：${completedData.urls.length}曲</li>`,
+    `<li>登録曲数：${registerCount}曲（データ不正：${illegalityDataIndex.value.length}曲）</li>`,
+    `<li>除外数：${isUnregisterCount}曲</li>`,
   ];
 
   const message = `<p>スコアを登録します。よろしいですか？</p><br><div><ul>${warnings.join('')}</ul></div>`;
@@ -176,7 +180,16 @@ const complete = async () => {
     show();
     const registerTargets = completedData.scoreData
       .filter((_, index) => !completedData.isUnregister[index])
-      .map((data) => cloneScoreData(data));
+      .map(
+        (data) =>
+          new Score({
+            musicId: data.musicId,
+            difficulty: data.difficulty,
+            combo: data.combo,
+            accuracy: data.accuracy,
+            judgement: data.judgement,
+          })
+      );
     await upsertData(registerTargets);
     notice({ title: '登録完了', text: `登録が完了しました。` });
   } catch (e) {

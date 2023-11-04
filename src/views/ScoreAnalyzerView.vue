@@ -41,7 +41,8 @@ const { notice } = useConfirmDialog();
 const stepperItems = [
   { title: '1. 設定', value: 0, rules: [() => true], component: AnalyzeSetting },
   { title: '2. 解析', value: 1, rules: [() => true], component: AnalyzeProgress },
-  { title: '3. 結果確認', value: 2, rules: [() => errorText === ''], component: AnalyzeResult },
+  { title: '3. 結果修正', value: 2, rules: [() => errorText === ''], component: AnalyzeResult },
+  { title: '4. 確認', value: 3, rules: [() => true], component: undefined },
 ];
 
 const step = ref(0);
