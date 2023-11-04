@@ -50,6 +50,8 @@ import { Checker } from '@/module/Corrector';
 import { useMusicStore } from '@/stores/MusicStore';
 import { Score, type AccuracyCount, type JudgmentCount } from '@/domain/entity/Score';
 import type { Difficulty } from '@/domain/value/Difficulty';
+import { watch } from 'vue';
+import type { Music } from '@/domain/entity/Music';
 
 const { findMusic } = useMusicStore();
 
@@ -75,33 +77,58 @@ const props = defineProps({
   },
 });
 
-const hasError = computed(() => Object.values(errors.value).some((e) => e.length > 0));
+const emits = defineEmits<{
+  (e: 'hasError', error: boolean): void;
+}>();
+
+interface ValidateData {
+  music?: Music;
+  score?: Score;
+}
+
+const validateData = computed<ValidateData>(() => {
+  const music = props.musicId ? findMusic(props.musicId) : undefined;
+  if (
+    music === undefined ||
+    props.musicId === undefined ||
+    props.difficulty === undefined ||
+    props.combo === undefined ||
+    props.accuracyCount === undefined ||
+    props.judgmentCount === undefined
+  ) {
+    return { music, score: undefined };
+  }
+
+  const numberValue = [props.combo, ...Object.values(props.accuracyCount), ...Object.values(props.judgmentCount)];
+  if (numberValue.map((v) => v.toString()).some((v) => Number.isNaN(Number.parseInt(v)))) {
+    return { music, score: undefined };
+  }
+
+  const score = new Score({
+    musicId: props.musicId,
+    difficulty: props.difficulty,
+    combo: props.combo,
+    accuracy: props.accuracyCount,
+    judgement: props.judgmentCount,
+  });
+  return { music, score };
+});
 
 const errors = computed(() => {
-  const music = props.musicId ? findMusic(props.musicId) : undefined;
-  return Object.keys(Checker).reduce((resObj, key) => {
-    resObj[key] = '';
-    if (
-      music === undefined ||
-      props.musicId === undefined ||
-      props.difficulty === undefined ||
-      props.combo === undefined ||
-      props.accuracyCount === undefined ||
-      props.judgmentCount === undefined
-    ) {
-      return resObj;
+  return Object.keys(Checker).reduce((errors, key) => {
+    errors[key] = '';
+
+    const { music, score } = validateData.value;
+    if (music === undefined || score === undefined) {
+      return errors;
     }
 
-    const scoreData = new Score({
-      musicId: props.musicId,
-      difficulty: props.difficulty,
-      combo: props.combo,
-      accuracy: props.accuracyCount,
-      judgement: props.judgmentCount,
-    });
-
-    resObj[key] = Checker[key].validator(music, scoreData);
-    return resObj;
+    errors[key] = Checker[key].validator(music, score);
+    return errors;
   }, {} as { [key: string]: string });
 });
+
+const hasError = computed(() => Object.values(errors.value).some((e) => e.length > 0));
+
+watch(hasError, (value) => emits('hasError', value));
 </script>

@@ -19,7 +19,7 @@ interface Validator {
 export const Checker: Record<string, Validator> = {
   totalNotesCount: {
     title: '総ノーツ数チェック',
-    description: 'Perfect～Missまでのノーツ数がデータと一致しているか確認します。',
+    description: 'Perfect～Missまでのノーツ数が総ノーツ数と一致しているか確認します。',
     validator: (master: Music, data: Score) => {
       const totalNotes = master.getDifficulty(data.difficulty)?.noteCount;
       if (totalNotes === undefined) {
@@ -66,7 +66,7 @@ export const Checker: Record<string, Validator> = {
   },
   existsDifficulty: {
     title: '難易度チェック',
-    description: '',
+    description: '指定された楽曲と難易度の組み合わせが存在するかを確認します。',
     validator: (music: Music, data: Score) => {
       if (music.getDifficulty(data.difficulty) === undefined) {
         return `楽曲${music.title}には、難易度${data.difficulty}が設定できません。`;
