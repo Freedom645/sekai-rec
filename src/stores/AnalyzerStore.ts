@@ -108,24 +108,27 @@ export const useAnalyzerStore = defineStore('analyzer', {
         rec[Element.TITLE] = list[0].title;
         comp++;
         this.progress.correct = ((records.length - comp) * 100) / records.length;
-
+        const parser = (value: string) => {
+          const parsed = Number.parseInt(value);
+          return Number.isNaN(parsed) ? 0 : parsed;
+        };
         const scoreData = new RegistrationScore({
           musicId: list[0].musicId,
           difficulty:
             DifficultyList.find((diff) => diff.toUpperCase() === rec[Element.DIFFICULT].toUpperCase()) ??
             Difficulty.EASY,
-          combo: Number.parseInt(rec[Element.COMBO]),
+          combo: parser(rec[Element.COMBO]),
           accuracy: {
-            [Accuracy.PERFECT]: Number.parseInt(rec[Element.PERFECT]),
-            [Accuracy.GREAT]: Number.parseInt(rec[Element.GREAT]),
-            [Accuracy.GOOD]: Number.parseInt(rec[Element.GOOD]),
-            [Accuracy.BAD]: Number.parseInt(rec[Element.BAD]),
-            [Accuracy.MISS]: Number.parseInt(rec[Element.MISS]),
+            [Accuracy.PERFECT]: parser(rec[Element.PERFECT]),
+            [Accuracy.GREAT]: parser(rec[Element.GREAT]),
+            [Accuracy.GOOD]: parser(rec[Element.GOOD]),
+            [Accuracy.BAD]: parser(rec[Element.BAD]),
+            [Accuracy.MISS]: parser(rec[Element.MISS]),
           },
           judgement: {
-            [Judgment.LATE]: Number.parseInt(rec[Element.LATE]),
-            [Judgment.FAST]: Number.parseInt(rec[Element.FAST]),
-            [Judgment.FLICK]: Number.parseInt(rec[Element.FLICK]),
+            [Judgment.LATE]: parser(rec[Element.LATE]),
+            [Judgment.FAST]: parser(rec[Element.FAST]),
+            [Judgment.FLICK]: parser(rec[Element.FLICK]),
           },
         });
 

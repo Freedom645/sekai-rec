@@ -33,7 +33,6 @@
             >
               スコア修正
             </v-btn>
-            <v-btn color="primary" @click="complete()">完了</v-btn>
             <v-sheet>
               <v-tooltip
                 text="登録対象から除外します。解析画像を間違えた場合などにチェックしてください。"
@@ -50,6 +49,7 @@
                 </template>
               </v-tooltip>
             </v-sheet>
+            <v-btn color="primary" @click="next()">次へ</v-btn>
           </v-col>
         </v-row>
       </v-col>
@@ -73,12 +73,7 @@
                   :music-id="completedData.scoreData[index].musicId"
                   :difficulty="completedData.scoreData[index].difficulty"
                 />
-                <score-detail
-                  v-if="completedData.scoreData[index]"
-                  :music-id="completedData.scoreData[index].musicId"
-                  :difficulty="completedData.scoreData[index].difficulty"
-                  :score-data="completedData.scoreData[index]"
-                />
+                <score-detail v-if="completedData.scoreData[index]" :score="completedData.scoreData[index]" />
               </v-col>
             </v-row>
             <v-row>
@@ -129,6 +124,8 @@ const window = ref(0);
 const editorIsOpen = ref(false);
 const showGrayscale = ref(false);
 
+const emits = defineEmits<{ (e: 'next'): void }>();
+
 const fixScoreData = () => {
   editorIsOpen.value = true;
 };
@@ -159,6 +156,19 @@ const nextIllegalityData = () => {
     return;
   }
   window.value = illegalityDataIndex.value[next];
+};
+
+const next = () => {
+  const illegalNum = illegalityDataIndex.value.length;
+  if (illegalNum > 0) {
+    notice({
+      title: '解析エラー',
+      text: `解析結果がエラーの楽曲が${illegalNum}曲あります。<br>スコア修正をするか、登録対象外に設定してください。`,
+    });
+    return;
+  }
+
+  emits('next');
 };
 
 const complete = async () => {

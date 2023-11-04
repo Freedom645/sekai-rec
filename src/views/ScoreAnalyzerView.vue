@@ -14,7 +14,7 @@
       </v-stepper-header>
       <v-stepper-window :touch="{ right: undefined, left: undefined }">
         <v-stepper-window-item v-for="item in stepperItems" :key="item.value" :value="item.value">
-          <component :is="item.component" @submit="submitSettings($event)" />
+          <component :is="item.component" @submit="submitSettings($event)" @next="next()" />
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
@@ -59,4 +59,6 @@ const submitSettings = async (arg: Settings) => {
 
   step.value = 2;
 };
+
+const next = () => (step.value = (step.value + 1) % stepperItems.length);
 </script>
