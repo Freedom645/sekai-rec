@@ -1,25 +1,4 @@
-import type { Rectangle as TesseractRect } from 'tesseract.js';
-
-export interface Point {
-  x: number;
-  y: number;
-}
-
-export interface Size {
-  w: number;
-  h: number;
-}
-
-export interface Rectangle {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-export const convertTesseractRect = (rect: Rectangle): TesseractRect => {
-  return { left: rect.x, top: rect.y, width: rect.w, height: rect.h };
-};
+import type { Rectangle, Size } from '@/core/Geometry';
 
 function threshold(data: ImageData, threshold: number = 200): ImageData {
   const lum = [0.298912, 0.586611, 0.114478]; //輝度計算用の係数
@@ -65,12 +44,19 @@ export default {
     ctx.putImageData(imagedata, 0, 0);
     return canvas.toDataURL();
   },
-  async drawRectangles(url: string, positions: Rectangle[]): Promise<string> {
+  async drawRectangles(url: string, positions: Rectangle[], size?: Size): Promise<string> {
     const img = await convertImageElement(url);
     const { canvas, ctx } = createByImage(img);
 
+    if (size === undefined) {
+      size = { w: canvas.width, h: canvas.height };
+    }
+
+    const rateX = canvas.width / size.w;
+    const rateY = canvas.height / size.h;
+
     ctx.beginPath();
-    positions.forEach((r) => ctx.rect(r.x, r.y, r.w, r.h));
+    positions.forEach((r) => ctx.rect(r.x * rateX, r.y * rateY, r.w * rateX, r.h * rateY));
     ctx.strokeStyle = 'red';
     ctx.lineWidth = 3;
     ctx.stroke();

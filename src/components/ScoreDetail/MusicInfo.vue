@@ -27,7 +27,7 @@ import { computed, type PropType } from 'vue';
 import { VContainer, VRow, VCol, VImg } from 'vuetify/components';
 import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import { useMusicStore } from '@/stores/MusicStore';
-import type { DifficultyRank as Difficulty } from '@/model/Game';
+import type { Difficulty } from '@/domain/value/Difficulty';
 
 const props = defineProps({
   musicId: {

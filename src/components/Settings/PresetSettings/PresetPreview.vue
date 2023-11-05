@@ -39,9 +39,10 @@
 import { onMounted, onUnmounted, ref, watch, defineProps, type PropType, nextTick } from 'vue';
 import { VImg } from 'vuetify/components';
 import RectangleCanvas from './RectangleCanvas.vue';
-import ImageProcessor, { type Rectangle, type Size } from '@/module/ImageProcessor';
+import ImageProcessor from '@/module/ImageProcessor';
 import { generateThresholdUrls } from '@/module/ScoreAnalyzer';
 import type { Element, ThresholdString, ThresholdNumber } from '@/model/Analyze';
+import type { Rectangle, Size } from '@/core/Geometry';
 
 const props = defineProps({
   targetElement: { type: String as PropType<Element>, required: true },

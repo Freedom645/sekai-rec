@@ -21,7 +21,7 @@
           </v-col>
         </v-row>
         <v-row>
-          <v-col lg="2" md="3" sm="4" cols="6" v-for="diff in DifficultyRankList" :key="diff">
+          <v-col lg="2" md="3" sm="4" cols="6" v-for="diff in DifficultyList" :key="diff">
             <v-checkbox
               v-model="filterCondition.difficultyCheckState[diff]"
               :label="diff"
@@ -63,7 +63,9 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="3">Full Combo</v-col>
+      <v-col cols="3">
+        <combo-state-label :state="ComboState.FC" />
+      </v-col>
       <v-col>
         <v-radio-group v-model="filterCondition.fullCombo" inline hide-details>
           <v-radio
@@ -77,7 +79,9 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="3">All Perfect</v-col>
+      <v-col cols="3">
+        <combo-state-label :state="ComboState.AP" />
+      </v-col>
       <v-col>
         <v-radio-group v-model="filterCondition.allPerfect" inline hide-details>
           <v-radio
@@ -113,10 +117,12 @@ import { ref, computed } from 'vue';
 import { VContainer, VRow, VCol, VBtn, VCheckbox, VIcon, VSelect } from 'vuetify/components';
 import DifficultyRankComp from '@/components/atomic/DifficultyRank.vue';
 import MusicAutocomplete from '@/components/atomic/MusicAutocomplete.vue';
+import ComboStateLabel from '../atomic/ComboStateLabel.vue';
 import { useMusicStore } from '@/stores/MusicStore';
 import { useSettingsStore } from '@/stores/SettingsStore';
-import { DifficultyRankList } from '@/model/Game';
 import { emptyCondition } from '@/model/Filter';
+import { DifficultyList } from '@/domain/value/Difficulty';
+import { ComboState } from '@/domain/value/ComboState';
 
 const { maxLevel } = useMusicStore();
 const { applyFilterCondition } = useSettingsStore();
@@ -151,6 +157,6 @@ const clickResetButton = () => (filterCondition.value = emptyCondition(maxLevel)
 
 const difficultyBulkCheck = computed(() => Object.values(filterCondition.value.difficultyCheckState).every((v) => v));
 const clickDifficultyBulkCheck = (checked: boolean) => {
-  DifficultyRankList.forEach((diff) => (filterCondition.value.difficultyCheckState[diff] = checked));
+  DifficultyList.forEach((diff) => (filterCondition.value.difficultyCheckState[diff] = checked));
 };
 </script>

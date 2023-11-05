@@ -63,10 +63,10 @@ import { VPagination, VSelect, VProgressLinear, VContainer } from 'vuetify/compo
 import { VDataTable } from 'vuetify/labs/VDataTable';
 import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import { useMusicStore } from '@/stores/MusicStore';
-import { DifficultyRankList, type DifficultyRank as Difficulty } from '@/model/Game';
-import { Accuracy, calcRankMatchScore } from '@/model/Score';
 import { useScoreStore } from '@/stores/ScoreStore';
 import { useSettingsStore } from '@/stores/SettingsStore';
+import { ComboState } from '@/domain/value/ComboState';
+import { type Difficulty, DifficultyList } from '@/domain/value/Difficulty';
 
 const defaultHeaders = [
   { title: '', align: 'center', sortable: false, key: 'jacketUrl' },
@@ -81,7 +81,7 @@ const defaultHeaders = [
 
 const { xs } = useDisplay();
 const { musicList } = useMusicStore();
-const { fetchAllData, allData } = useScoreStore();
+const { fetchAllData, scoreList } = useScoreStore();
 const { scoreView } = useSettingsStore();
 
 // emits
@@ -96,13 +96,13 @@ const Filters: Record<string, (row: RowItem) => boolean> = {
     if (scoreView.filterCondition.fullCombo === 'none') {
       return true;
     }
-    return (scoreView.filterCondition.fullCombo === 'include') !== (row.comboState === 'none');
+    return (scoreView.filterCondition.fullCombo === 'include') !== (row.comboState === ComboState.NONE);
   },
   allPerfect: (row) => {
     if (scoreView.filterCondition.allPerfect === 'none') {
       return true;
     }
-    return (scoreView.filterCondition.allPerfect !== 'include') !== (row.comboState === 'ap');
+    return (scoreView.filterCondition.allPerfect !== 'include') !== (row.comboState === ComboState.AP);
   },
 };
 
@@ -133,12 +133,12 @@ interface RowItem {
   /** スコアの割合表記 */
   scoreRate: number;
   /** コンボ状態 */
-  comboState: 'none' | 'fc' | 'ap';
+  comboState: ComboState;
 }
 
 const customKeySort: Record<string, (a: any, b: any) => number> = {
   difficulty: (left: Difficulty, right: Difficulty) => {
-    return DifficultyRankList.findIndex((d) => d === left) - DifficultyRankList.findIndex((d) => d === right);
+    return DifficultyList.findIndex((d) => d === left) - DifficultyList.findIndex((d) => d === right);
   },
   accuracyScore: (left: number[], right: number[]) => {
     const weight = [1, 2, 3, 3];
@@ -171,34 +171,25 @@ const items = computed(() => {
     .flatMap(({ music, diff }) => {
       const musicIdPad = ('000' + music.id.toString()).slice(-3);
 
-      const score = allData.find((data) => data.musicId === music.id && data.difficulty === diff.rank);
+      const score = scoreList.find((data) => data.musicId === music.id && data.difficulty === diff.diff);
       if (score === undefined) {
         if (scoreView.filterCondition.showUnregister) {
           const row: RowItem = {
             musicId: music.id,
             jacketUrl: `https://storage.sekai.best/sekai-assets/music/jacket/jacket_s_${musicIdPad}_rip/jacket_s_${musicIdPad}.webp`,
             title: music.title,
-            difficulty: diff.rank,
+            difficulty: diff.diff,
             level: diff.level,
             rankMatchScore: 0,
             scoreRate: 0,
             apDiffScore: '-',
             accuracyScore: [0, 0, 0, 0],
-            comboState: 'none',
+            comboState: ComboState.NONE,
           };
           return row;
         }
         return [];
       }
-
-      const rankScore = calcRankMatchScore(score.accuracyCount);
-      const maxScore = diff.noteCount * 3;
-
-      const accuracyScore = [Accuracy.GREAT, Accuracy.GOOD, Accuracy.BAD, Accuracy.MISS].map(
-        (acc) => score.accuracyCount[acc]
-      );
-
-      const comboState = maxScore === rankScore ? 'ap' : score.combo === diff.noteCount ? 'fc' : 'none';
 
       const row: RowItem = {
         musicId: score.musicId,
@@ -206,11 +197,11 @@ const items = computed(() => {
         title: music.title,
         difficulty: score.difficulty,
         level: diff.level,
-        rankMatchScore: rankScore,
-        scoreRate: (rankScore / maxScore) * 100,
-        apDiffScore: `${rankScore - maxScore}`,
-        accuracyScore: accuracyScore,
-        comboState: comboState,
+        rankMatchScore: score.calcRankMatchScore(),
+        scoreRate: score.calcScoreRate(diff.noteCount) * 100,
+        apDiffScore: `${score.getDeductionScore(diff.noteCount)}`,
+        accuracyScore: score.getScoreAccuracy(),
+        comboState: score.comboState(diff.noteCount),
       };
 
       return row;
@@ -226,8 +217,8 @@ const defaultSortComparator = (a: RowItem, b: RowItem): number => {
     return a.musicId - b.musicId;
   }
   return (
-    DifficultyRankList.findIndex((diff) => diff === a.difficulty) -
-    DifficultyRankList.findIndex((diff) => diff === b.difficulty)
+    DifficultyList.findIndex((diff) => diff === a.difficulty) -
+    DifficultyList.findIndex((diff) => diff === b.difficulty)
   );
 };
 </script>

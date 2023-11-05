@@ -19,11 +19,11 @@ import { VContainer, VRow } from 'vuetify/components';
 import MusicInfo from '@/components/ScoreDetail/MusicInfo.vue';
 import ScoreDetail from '@/components/ScoreDetail/ScoreDetail.vue';
 import { useMusicStore } from '@/stores/MusicStore';
-import { DifficultyRank, DifficultyRankList } from '@/model/Game';
+import { Difficulty, DifficultyList } from '@/domain/value/Difficulty';
 
 const state = reactive({
   musicId: 1,
-  difficulty: DifficultyRank.MASTER as DifficultyRank,
+  difficulty: Difficulty.MASTER as Difficulty,
 });
 
 const { findMusic } = useMusicStore();
@@ -33,7 +33,7 @@ const router = useRouter();
 const validatePathParam = (
   idParam: string | string[],
   diffParam: string | string[]
-): { id: number; diff: DifficultyRank } | undefined => {
+): { id: number; diff: Difficulty } | undefined => {
   if (typeof idParam !== 'string' || typeof diffParam !== 'string') {
     return undefined;
   }
@@ -43,7 +43,7 @@ const validatePathParam = (
     return undefined;
   }
 
-  const diff = DifficultyRankList.find((diff) => diff === diffParam);
+  const diff = DifficultyList.find((diff) => diff === diffParam);
   if (diff === undefined) {
     return undefined;
   }

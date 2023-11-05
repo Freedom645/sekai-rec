@@ -1,5 +1,5 @@
 import { createWorker, createScheduler, PSM } from 'tesseract.js';
-import ImageProcessor, { convertTesseractRect } from './ImageProcessor';
+import ImageProcessor from './ImageProcessor';
 import type { AnalyzeRecord, DefaultKey, ThresholdNumber, ThresholdString } from '@/model/Analyze';
 import { Element, ElementList, type Preset } from '@/model/Analyze';
 
@@ -50,7 +50,7 @@ export const analyze = async (
     const task: Array<Promise<OcrResult>> = [];
     for (const key of ElementList) {
       console.log(key);
-      const rect = convertTesseractRect(preset.position[key]);
+      const rect = preset.position[key].convertTesseractRect();
       const scheduler = key === Element.TITLE || key === Element.DIFFICULT ? titleScheduler : scoreScheduler;
       data.forEach((img, index) => {
         task.push(
