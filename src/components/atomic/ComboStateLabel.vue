@@ -3,14 +3,7 @@
     {{ label }}
   </span>
 </template>
-<style scoped>
-.label {
-  width: 5.1rem;
-}
-.icon {
-  width: 2.3rem;
-}
-</style>
+<style scoped></style>
 <script setup lang="ts">
 import { ComboState } from '@/domain/value/ComboState';
 import { computed, type PropType } from 'vue';
