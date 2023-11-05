@@ -14,7 +14,7 @@
     </v-row>
     <v-row justify="center">
       <v-col cols="12" md="10">
-        <position-preview v-model:preset="settings.preset" :file="settings.files?.[0]" />
+        <position-preview v-model:preset="settings.preset" :files="settings.files" />
       </v-col>
     </v-row>
     <v-row justify="center">
