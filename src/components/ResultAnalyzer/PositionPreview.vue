@@ -51,10 +51,11 @@
 
 <script setup lang="ts">
 import { ref, watch, type PropType, onMounted } from 'vue';
-import ImageProcessor, { type Rectangle } from '@/module/ImageProcessor';
+import ImageProcessor from '@/module/ImageProcessor';
 import type { Preset } from '@/model/Analyze';
 import { useAnalyzerSettingsStore } from '@/stores/AnalyzerSettingsStore';
 import { computed } from 'vue';
+import type { Rectangle } from '@/core/Geometry';
 
 const { presets, fetchPreset } = useAnalyzerSettingsStore();
 

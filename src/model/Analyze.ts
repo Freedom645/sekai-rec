@@ -1,4 +1,4 @@
-import type { Rectangle, Size } from '@/module/ImageProcessor';
+import { Rectangle, type Size } from '@/core/Geometry';
 
 export const Element = {
   TITLE: 'title',
@@ -60,19 +60,12 @@ export interface Preset {
   threshold: ThresholdNumber;
 }
 
-export const generateEmptyRectangle = (): Rectangle => ({
-  x: 0,
-  y: 0,
-  w: 1,
-  h: 1,
-});
-
 export const generateEmptyPreset = (): Preset => ({
   key: '',
   name: '',
   size: { w: 1, h: 1 },
   position: ElementList.reduce(
-    (obj, curr) => Object.assign(obj, { [curr]: generateEmptyRectangle() }),
+    (obj, curr) => Object.assign(obj, { [curr]: Rectangle.emptyRectangle() }),
     {} as ImagePosition
   ),
   threshold: { default: 200 },

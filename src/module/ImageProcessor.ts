@@ -1,25 +1,4 @@
-import type { Rectangle as TesseractRect } from 'tesseract.js';
-
-export interface Point {
-  x: number;
-  y: number;
-}
-
-export interface Size {
-  w: number;
-  h: number;
-}
-
-export interface Rectangle {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-export const convertTesseractRect = (rect: Rectangle): TesseractRect => {
-  return { left: rect.x, top: rect.y, width: rect.w, height: rect.h };
-};
+import type { Rectangle, Size } from '@/core/Geometry';
 
 function threshold(data: ImageData, threshold: number = 200): ImageData {
   const lum = [0.298912, 0.586611, 0.114478]; //輝度計算用の係数

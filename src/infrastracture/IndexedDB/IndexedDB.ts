@@ -1,7 +1,7 @@
 import Dexie from 'dexie';
 import { Element } from '@/model/Analyze';
-import type { Rectangle, Size } from '@/module/ImageProcessor';
 import type { IScoreData } from './ScoreDB';
+import type { Rectangle, Size } from '@/core/Geometry';
 
 interface DataSet<T> {
   [Element.TITLE]: T;
