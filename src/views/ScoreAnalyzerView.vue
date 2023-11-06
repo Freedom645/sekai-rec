@@ -8,7 +8,7 @@
           :value="item.value"
           :title="item.title"
           :rules="item.rules"
-          :disabled="item.value >= 2 && scoreData.length === 0"
+          :disabled="item.value >= 2 && completedData.length === 0"
           icon="mdi-alert"
         />
       </v-stepper-header>
@@ -36,7 +36,7 @@ const {
   setSettings,
   startAnalyzing,
   progress: { errorText },
-  completedData: { scoreData },
+  completedData,
 } = useAnalyzerStore();
 const { fetchAllData } = useScoreStore();
 

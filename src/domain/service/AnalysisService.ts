@@ -34,7 +34,7 @@ export interface IProgress {
   updateSetup(rate: number): void;
   updateBinarize(rate: number): void;
   updateAnalysis(rate: number): void;
-  updateCo(rate: number): void;
+  updateCorrect(rate: number): void;
 }
 
 export interface AnalyzerSet {
@@ -70,7 +70,7 @@ export class AnalysisService {
 
     // OCR
     const ocrTasks = imageList.flatMap((img, index) => this.createOcrTask(index, img, settings));
-    const ocrList = await this.awaitAllTasks(ocrTasks, (p) => progress.updateBinarize(p));
+    const ocrList = await this.awaitAllTasks(ocrTasks, (p) => progress.updateAnalysis(p));
     const groupingOcrRes = ocrList.reduce((obj, res) => {
       const array = obj[res.index] ?? [];
       array.push(res);
@@ -79,16 +79,18 @@ export class AnalysisService {
     }, [] as AnalysisElementResult[][]);
 
     // データ補正
+    let completedNum = 0;
     const result: AnalysisResult[] = groupingOcrRes
       .map((resArray) => this.createCorrectTask(resArray))
-      .map(
-        (score, index) =>
-          new AnalysisResult({
-            originalImage: images[index],
-            preprocessedImage: imageList[index].toDataURL(),
-            score: score,
-          })
-      );
+      .map((score, index) => {
+        progress.updateCorrect((100 * ++completedNum) / groupingOcrRes.length);
+        return new AnalysisResult({
+          originalImage: images[index],
+          preprocessedImage: imageList[index].toDataURL(),
+          score: score,
+        });
+      });
+    progress.updateCorrect(100);
 
     return result;
   }
@@ -104,11 +106,15 @@ export class AnalysisService {
     const taskNum = tasks.length;
     let completed = 0;
 
-    const completedData = await Promise.all(tasks).then((data) => {
-      completed++;
-      progressUpdater((100 * completed) / taskNum);
-      return data;
-    });
+    const completedData = await Promise.all(
+      tasks.map((task) =>
+        task.then((data) => {
+          completed++;
+          progressUpdater((100 * completed) / taskNum);
+          return data;
+        })
+      )
+    );
 
     progressUpdater(100);
 

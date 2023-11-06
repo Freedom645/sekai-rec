@@ -18,4 +18,12 @@ export class AnalysisResult {
     this.score = args.score;
     this.isUnregister = false;
   }
+
+  public fixScore(score: Score): AnalysisResult {
+    return new AnalysisResult({
+      originalImage: this.originalImage,
+      preprocessedImage: this.preprocessedImage,
+      score: score,
+    });
+  }
 }

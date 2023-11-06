@@ -1,4 +1,8 @@
 import { Rectangle, type Size } from '@/core/Geometry';
+import type { IAnalysisElement } from '@/domain/entity/AnalysisElement';
+import { AnalysisSetting } from '@/domain/entity/AnalysisSetting';
+import type { AnalysisElementType } from '@/domain/value/AnalysisElementType';
+import { AnalysisMethodType } from '@/domain/value/AnalysisMethodType';
 
 export const Element = {
   TITLE: 'title',
@@ -72,3 +76,22 @@ export const generateEmptyPreset = (): Preset => ({
 });
 
 export const clonePreset = (preset: Preset): Preset => JSON.parse(JSON.stringify(preset));
+
+export const convertPresetToAnalysisSetting = (preset: Preset): AnalysisSetting => {
+  const elements: IAnalysisElement[] = ElementList.map((e) => {
+    const element: IAnalysisElement = {
+      analysisElementType: (): AnalysisElementType => e,
+      analysisRange: (): Rectangle => preset.position[e],
+      analysisMethod: (): AnalysisMethodType =>
+        e === Element.TITLE || e === Element.DIFFICULT ? AnalysisMethodType.OCR_STRING : AnalysisMethodType.OCR_NUMBER,
+      binarizeValue: (): number | undefined => preset.threshold[e] ?? preset.threshold.default,
+    };
+    return element;
+  });
+
+  return new AnalysisSetting({
+    name: preset.name,
+    imageSize: preset.size,
+    elements: elements,
+  });
+};

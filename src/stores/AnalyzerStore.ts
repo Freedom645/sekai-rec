@@ -1,11 +1,14 @@
-import { analyze, generateThresholdUrls } from '@/module/ScoreAnalyzer';
 import { defineStore } from 'pinia';
 import { useMusicStore } from './MusicStore';
-import { type AnalyzeRecord, Element, type Preset, type ThresholdNumber, type ThresholdString } from '@/model/Analyze';
-import { RegistrationScore } from '@/domain/entity/RegistrationScore';
-import { Accuracy } from '@/domain/value/Accuracy';
-import { Judgment } from '@/domain/value/Judgement';
+import { type Preset, convertPresetToAnalysisSetting } from '@/model/Analyze';
 import { Difficulty, DifficultyList } from '@/domain/value/Difficulty';
+import type { AnalysisResult } from '@/domain/entity/AnalysisResult';
+import { AnalysisService, type AnalyzerSet, type ICorrector, type IProgress } from '@/domain/service/AnalysisService';
+import { AnalysisMethodType } from '@/domain/value/AnalysisMethodType';
+import { OcrService } from '@/domain/service/OcrService';
+import { AnalysisSetting } from '@/domain/entity/AnalysisSetting';
+import type { RegistrationScore } from '@/domain/entity/RegistrationScore';
+import { PHashService } from '@/domain/service/PHashService';
 
 export interface Settings {
   files: File[];
@@ -20,8 +23,8 @@ interface OcrStep {
 }
 export const OcrSteps = [
   { key: 'not-start', name: '未解析' },
-  { key: 'threshold', name: '前処理' },
   { key: 'init', name: 'セットアップ' },
+  { key: 'threshold', name: '前処理' },
   { key: 'ocr', name: '画像解析' },
   { key: 'correct', name: 'データ補正' },
   { key: 'completed', name: '完了' },
@@ -40,23 +43,17 @@ export const useAnalyzerStore = defineStore('analyzer', {
       correct: 0,
       errorText: '',
     },
-    completedData: {
-      urls: [] as string[],
-      thresholdUrls: [] as ThresholdString[],
-      scoreData: [] as RegistrationScore[],
-      isUnregister: [] as boolean[],
-    },
+    completedData: [] as AnalysisResult[],
   }),
   getters: {
-    getProgress: (state) => state.progress,
     getScoreData:
       (state) =>
       (index: number): RegistrationScore | undefined =>
-        state.completedData.scoreData[index],
+        state.completedData[index]?.score,
     getUrlData:
       (state) =>
       (index: number): string | undefined =>
-        state.completedData.urls[index],
+        state.completedData[index]?.originalImage,
   },
   actions: {
     setSettings(settings: Partial<Settings>): void {
@@ -70,72 +67,27 @@ export const useAnalyzerStore = defineStore('analyzer', {
       this.progress.ocrTask = 0;
       this.progress.correct = 0;
       this.progress.errorText = '';
-      this.completedData.urls.forEach((file) => URL.revokeObjectURL(file));
-      this.completedData.urls.splice(0);
-      this.completedData.thresholdUrls.splice(0);
-      this.completedData.scoreData.splice(0);
-      this.completedData.isUnregister.splice(0);
+      this.completedData.forEach((d) => URL.revokeObjectURL(d.originalImage));
+      this.completedData.splice(0);
     },
-    proceedOcrStep(nextKey?: OcrStepKey): void {
-      const next = OcrSteps.findIndex((step) => step.key === (nextKey ?? this.progress.state.key)) + (nextKey ? 0 : 1);
-      if (next <= 0 || OcrSteps.length <= next) {
-        throw new Error('Implementation error.');
-      }
-      this.progress.state = OcrSteps[next];
-    },
-    async convertThresholdUrls(urls: string[], thresholdValue: ThresholdNumber): Promise<ThresholdString[]> {
-      this.progress.threshold = 0;
-
-      let completed = 0;
-      const thresholdUrls: ThresholdString[] = await Promise.all(
-        urls.map((url) =>
-          generateThresholdUrls(url, thresholdValue).then((res) => {
-            completed++;
-            this.progress.threshold = (completed * 100) / urls.length;
-            return res;
-          })
-        )
-      );
-
-      this.progress.threshold = 100;
-      return thresholdUrls;
-    },
-    correcting(records: AnalyzeRecord[]): RegistrationScore[] {
+    generateCorrector(): ICorrector {
       const { searchFuzzy } = useMusicStore();
-      let comp = 0;
-      const scoreDataList = records.map((rec) => {
-        const list = searchFuzzy(rec[Element.TITLE]);
-        rec[Element.TITLE] = list[0].title;
-        comp++;
-        this.progress.correct = ((records.length - comp) * 100) / records.length;
-        const parser = (value: string) => {
-          const parsed = Number.parseInt(value);
-          return Number.isNaN(parsed) ? 0 : parsed;
-        };
-        const scoreData = new RegistrationScore({
-          musicId: list[0].musicId,
-          difficulty:
-            DifficultyList.find((diff) => diff.toUpperCase() === rec[Element.DIFFICULT].toUpperCase()) ??
-            Difficulty.EASY,
-          combo: parser(rec[Element.COMBO]),
-          accuracy: {
-            [Accuracy.PERFECT]: parser(rec[Element.PERFECT]),
-            [Accuracy.GREAT]: parser(rec[Element.GREAT]),
-            [Accuracy.GOOD]: parser(rec[Element.GOOD]),
-            [Accuracy.BAD]: parser(rec[Element.BAD]),
-            [Accuracy.MISS]: parser(rec[Element.MISS]),
-          },
-          judgement: {
-            [Judgment.LATE]: parser(rec[Element.LATE]),
-            [Judgment.FAST]: parser(rec[Element.FAST]),
-            [Judgment.FLICK]: parser(rec[Element.FLICK]),
-          },
-        });
 
-        return scoreData;
+      return {
+        searchMusicTitle: (title) => searchFuzzy(title)[0].musicId,
+        searchDifficulty: (difficulty) => DifficultyList.find((v) => v === difficulty) ?? Difficulty.EASY,
+      };
+    },
+    generateSettings(): AnalysisSetting {
+      if (this.settings.preset === undefined) {
+        throw new Error('No preset selected.');
+      }
+
+      return new AnalysisSetting({
+        name: this.settings.preset.name,
+        imageSize: this.settings.preset.size,
+        elements: [],
       });
-      this.progress.correct = 100;
-      return scoreDataList;
     },
     async startAnalyzing(): Promise<string> {
       if (this.settings.files === undefined || this.settings.files.length === 0) {
@@ -146,30 +98,44 @@ export const useAnalyzerStore = defineStore('analyzer', {
       }
       this.initializeProgress();
       const urls = this.settings.files.map((file) => URL.createObjectURL(file));
-      this.completedData.urls = urls;
       try {
-        // 二値化
-        this.proceedOcrStep('threshold');
-        const thresholdUrls = await this.convertThresholdUrls(urls, this.settings.preset.threshold);
-        this.completedData.thresholdUrls.push(...thresholdUrls);
-
-        // OCRセットアップ ～ 解析
-        this.proceedOcrStep('init');
-        const callback = (s: 'ocr' | 'setup', v: number): void => {
-          if (s === 'setup') {
-            return;
-          }
-          this.proceedOcrStep('ocr');
-          this.progress.ocrTask = v;
+        const analyzer: AnalyzerSet = {
+          [AnalysisMethodType.OCR_STRING]: new OcrService('string'),
+          [AnalysisMethodType.OCR_NUMBER]: new OcrService('number', { workerNum: 2 }),
+          [AnalysisMethodType.P_HASH]: new PHashService(),
         };
-        const records = await analyze(thresholdUrls, this.settings.preset, callback);
+        const { searchFuzzy } = useMusicStore();
+        const corrector: ICorrector = {
+          searchMusicTitle: (title) => searchFuzzy(title)[0].musicId,
+          searchDifficulty: (difficulty) =>
+            DifficultyList.find((v) => v.toString().toUpperCase() === difficulty.toUpperCase()) ?? Difficulty.EASY,
+        };
+        const analysisService = new AnalysisService({ analyzer, corrector });
 
-        // データ補正
-        this.proceedOcrStep('correct');
-        this.completedData.scoreData.push(...this.correcting(records));
+        const progressUpdater: IProgress = {
+          updateSetup: (): void => {
+            this.progress.state = OcrSteps[1];
+          },
+          updateBinarize: (rate: number): void => {
+            this.progress.state = OcrSteps[2];
+            this.progress.threshold = rate;
+          },
+          updateAnalysis: (rate: number): void => {
+            this.progress.state = OcrSteps[3];
+            this.progress.ocrTask = rate;
+          },
+          updateCorrect: (rate: number): void => {
+            this.progress.state = OcrSteps[4];
+            this.progress.correct = rate;
+          },
+        };
 
-        // 完了
-        this.proceedOcrStep('completed');
+        const settings = convertPresetToAnalysisSetting(this.settings.preset);
+
+        const res = await analysisService.execute(urls, settings, progressUpdater);
+        this.completedData.push(...res);
+
+        this.progress.state = OcrSteps[5];
 
         return '';
       } catch (e) {
@@ -186,10 +152,12 @@ export const useAnalyzerStore = defineStore('analyzer', {
       }
     },
     fixScoreData(index: number, scoreData: RegistrationScore): void {
-      if (index < 0 || this.completedData.scoreData.length <= index) {
+      const old = this.completedData[index];
+      if (old === undefined) {
         throw new Error('Implementation error.');
       }
-      this.completedData.scoreData[index] = scoreData;
+
+      this.completedData.splice(index, 1, old.fixScore(scoreData));
     },
   },
 });

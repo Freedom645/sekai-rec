@@ -177,17 +177,17 @@ const customKeySort: Record<string, (a: any, b: any) => number> = {
 };
 
 const items = computed(() => {
-  const scoreRecords: RowItem[] = completedData.scoreData.flatMap((score, index) => {
-    if (completedData.isUnregister[index] === true) {
+  const scoreRecords: RowItem[] = completedData.flatMap((data) => {
+    if (data.isUnregister === true) {
       return [];
     }
-    const music = findMusic(score.musicId);
-    const diff = music?.getDifficulty(score.difficulty);
+    const music = findMusic(data.score.musicId);
+    const diff = music?.getDifficulty(data.score.difficulty);
     if (music === undefined || diff === undefined) {
       return [];
     }
 
-    const beforeScore = findScore(score.musicId, score.difficulty) ?? Score.emptyScoreData();
+    const beforeScore = findScore(data.score.musicId, data.score.difficulty) ?? Score.emptyScoreData();
 
     const compareColor = (before: number, after: number) => {
       const diff = before - after;
@@ -202,20 +202,20 @@ const items = computed(() => {
 
     const musicIdPad = ('000' + music.id.toString()).slice(-3);
     const row: RowItem = {
-      musicId: score.musicId,
+      musicId: data.score.musicId,
       jacketUrl: `https://storage.sekai.best/sekai-assets/music/jacket/jacket_s_${musicIdPad}_rip/jacket_s_${musicIdPad}.webp`,
       title: music.title,
-      difficulty: score.difficulty,
-      comboState: [beforeScore.comboState(diff.noteCount), score.comboState(diff.noteCount)],
-      rankMatchScore: [beforeScore.calcRankMatchScore(), score.calcRankMatchScore()],
-      accuracyScore: [beforeScore.getScoreAccuracy(), score.getScoreAccuracy()],
-      combo: [beforeScore.combo, score.combo],
+      difficulty: data.score.difficulty,
+      comboState: [beforeScore.comboState(diff.noteCount), data.score.comboState(diff.noteCount)],
+      rankMatchScore: [beforeScore.calcRankMatchScore(), data.score.calcRankMatchScore()],
+      accuracyScore: [beforeScore.getScoreAccuracy(), data.score.getScoreAccuracy()],
+      combo: [beforeScore.combo, data.score.combo],
       color: {
-        rankMatchScore: compareColor(beforeScore.calcRankMatchScore(), score.calcRankMatchScore()),
-        combo: compareColor(beforeScore.combo, score.combo),
+        rankMatchScore: compareColor(beforeScore.calcRankMatchScore(), data.score.calcRankMatchScore()),
+        combo: compareColor(beforeScore.combo, data.score.combo),
       },
-      score: score,
-      isRegister: beforeScore.compare(score) > 0,
+      score: data.score,
+      isRegister: beforeScore.compare(data.score) > 0,
     };
 
     return row;
