@@ -102,6 +102,7 @@ import type { ComboState } from '@/domain/value/ComboState';
 import { type Difficulty, DifficultyList } from '@/domain/value/Difficulty';
 import { Score } from '@/domain/entity/Score';
 import { watch } from 'vue';
+import { padZero } from '@/core/utils/Parser';
 
 const defaultHeaders = [
   { title: '', align: 'center', sortable: false, key: 'jacketUrl' },
@@ -199,7 +200,7 @@ const items = computed(() => {
       return 'red';
     };
 
-    const musicIdPad = ('000' + music.id.toString()).slice(-3);
+    const musicIdPad = padZero(music.id, 3);
     const row: RowItem = {
       musicId: data.score.musicId,
       jacketUrl: `https://storage.sekai.best/sekai-assets/music/jacket/jacket_s_${musicIdPad}_rip/jacket_s_${musicIdPad}.webp`,
