@@ -9,26 +9,14 @@ import { OcrService } from '@/domain/service/OcrService';
 import { AnalysisSetting } from '@/domain/entity/AnalysisSetting';
 import type { RegistrationScore } from '@/domain/entity/RegistrationScore';
 import { PHashService } from '@/domain/service/PHashService';
+import { Checker } from '@/module/Corrector';
 
 export interface Settings {
   files: File[];
   preset: Preset | undefined;
 }
 
-type OcrStepKey = 'not-start' | 'threshold' | 'init' | 'ocr' | 'correct' | 'completed';
-
-interface OcrStep {
-  key: OcrStepKey;
-  name: string;
-}
-export const OcrSteps = [
-  { key: 'not-start', name: '未解析' },
-  { key: 'init', name: 'セットアップ' },
-  { key: 'threshold', name: '前処理' },
-  { key: 'ocr', name: '画像解析' },
-  { key: 'correct', name: 'データ補正' },
-  { key: 'completed', name: '完了' },
-] as const;
+type OcrStepKey = 'not-start' | 'init' | 'threshold' | 'ocr' | 'correct' | 'completed';
 
 export const useAnalyzerStore = defineStore('analyzer', {
   state: () => ({
@@ -37,13 +25,14 @@ export const useAnalyzerStore = defineStore('analyzer', {
       preset: undefined,
     } as Settings,
     progress: {
-      state: OcrSteps[0] as OcrStep,
+      state: 'not-start' as OcrStepKey,
       threshold: 0,
       ocrTask: 0,
       correct: 0,
       errorText: '',
     },
     completedData: [] as AnalysisResult[],
+    isUnregister: [] as boolean[],
   }),
   getters: {
     getScoreData:
@@ -54,25 +43,59 @@ export const useAnalyzerStore = defineStore('analyzer', {
       (state) =>
       (index: number): string | undefined =>
         state.completedData[index]?.originalImage,
+    isCompleted: (state) => () => state.progress.state === 'completed',
   },
   actions: {
+    getRegisterData() {
+      return this.completedData.filter((_, index) => !this.isUnregister[index]);
+    },
+    getIllegalityDataIndex() {
+      const { findMusic } = useMusicStore();
+      return this.completedData.flatMap((data, index) => {
+        if (this.isUnregister[index]) {
+          return [];
+        }
+        const music = findMusic(data.score.musicId);
+        if (music === undefined) {
+          return index;
+        }
+        if (Object.values(Checker).every((v) => v.validator(music, data.score) === '')) {
+          return [];
+        }
+        return index;
+      });
+    },
     setSettings(settings: Partial<Settings>): void {
       this.settings.files.splice(0);
       this.settings.files.push(...(settings.files ?? []));
       this.settings.preset = settings.preset ?? this.settings.preset;
     },
     initializeProgress(): void {
-      this.progress.state = OcrSteps[0];
+      this.progress.state = 'not-start';
       this.progress.threshold = 0;
       this.progress.ocrTask = 0;
       this.progress.correct = 0;
       this.progress.errorText = '';
       this.completedData.forEach((d) => URL.revokeObjectURL(d.originalImage));
       this.completedData.splice(0);
+      this.isUnregister.splice(0);
+    },
+    updateProgress(step: OcrStepKey, progress: number): void {
+      this.progress.state = step;
+      switch (step) {
+        case 'threshold':
+          this.progress.threshold = progress;
+          break;
+        case 'ocr':
+          this.progress.ocrTask = progress;
+          break;
+        case 'correct':
+          this.progress.correct = progress;
+          break;
+      }
     },
     generateCorrector(): ICorrector {
       const { searchFuzzy } = useMusicStore();
-
       return {
         searchMusicTitle: (title) => searchFuzzy(title)[0].musicId,
         searchDifficulty: (difficulty) => DifficultyList.find((v) => v === difficulty) ?? Difficulty.EASY,
@@ -113,20 +136,17 @@ export const useAnalyzerStore = defineStore('analyzer', {
         const analysisService = new AnalysisService({ analyzer, corrector });
 
         const progressUpdater: IProgress = {
-          updateSetup: (): void => {
-            this.progress.state = OcrSteps[1];
+          updateSetup: (rate: number): void => {
+            this.updateProgress('init', rate);
           },
           updateBinarize: (rate: number): void => {
-            this.progress.state = OcrSteps[2];
-            this.progress.threshold = rate;
+            this.updateProgress('threshold', rate);
           },
           updateAnalysis: (rate: number): void => {
-            this.progress.state = OcrSteps[3];
-            this.progress.ocrTask = rate;
+            this.updateProgress('ocr', rate);
           },
           updateCorrect: (rate: number): void => {
-            this.progress.state = OcrSteps[4];
-            this.progress.correct = rate;
+            this.updateProgress('correct', rate);
           },
         };
 
@@ -135,7 +155,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
         const res = await analysisService.execute(urls, settings, progressUpdater);
         this.completedData.push(...res);
 
-        this.progress.state = OcrSteps[5];
+        this.progress.state = 'completed';
 
         return '';
       } catch (e) {

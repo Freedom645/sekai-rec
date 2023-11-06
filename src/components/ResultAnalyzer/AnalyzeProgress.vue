@@ -3,8 +3,8 @@
     <v-row>
       <v-col>セットアップ</v-col>
       <v-col>
-        <v-icon v-if="progress.state.key === 'not-start'" icon="mdi-ocr" />
-        <v-progress-circular v-else-if="progress.state.key === 'init'" indeterminate />
+        <v-icon v-if="progress.state === 'not-start'" icon="mdi-ocr" />
+        <v-progress-circular v-else-if="progress.state === 'init'" indeterminate />
         <v-icon v-else icon="mdi-check-circle" />
       </v-col>
     </v-row>

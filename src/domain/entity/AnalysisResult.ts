@@ -9,14 +9,10 @@ export class AnalysisResult {
   /** スコアデータ */
   public readonly score: Score;
 
-  /** 登録可否 */
-  public isUnregister: boolean;
-
   public constructor(args: { originalImage: string; preprocessedImage: string; score: Score }) {
     this.originalImage = args.originalImage;
     this.preprocessedImage = args.preprocessedImage;
     this.score = args.score;
-    this.isUnregister = false;
   }
 
   public fixScore(score: Score): AnalysisResult {

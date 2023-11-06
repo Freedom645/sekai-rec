@@ -50,10 +50,10 @@ const settings = ref({
 } as Settings);
 
 const shortageSettings = computed(() => (settings.value.files?.length ?? 0) === 0);
-const isAnalyzing = computed(() => progress.state.key !== 'not-start' && progress.state.key !== 'completed');
+const isAnalyzing = computed(() => progress.state !== 'not-start' && progress.state !== 'completed');
 
 onBeforeRouteLeave((to, from, next) => {
-  if (shortageSettings.value || progress.state.key !== 'not-start') {
+  if (shortageSettings.value || progress.state !== 'not-start') {
     next();
     return;
   }

@@ -3,7 +3,7 @@
   <v-container class="pa-0">
     <v-row>
       <v-col class="d-flex justify-end">
-        <v-btn color="primary" @click="clickRegisterButton()">登録</v-btn>
+        <v-btn color="primary" :disabled="registerButtonDisabled" @click="clickRegisterButton()">登録</v-btn>
       </v-col>
     </v-row>
     <v-data-table
@@ -59,8 +59,8 @@
         </div>
       </template>
 
-      <template v-slot:item.check="{ item: { raw } }">
-        <v-checkbox v-model="(raw as RowItem).isRegister" color="secondary" hide-details />
+      <template v-slot:item.check="{ item: { index } }">
+        <v-checkbox v-model="isRegister[index as number] " color="secondary" hide-details />
       </template>
 
       <template v-slot:bottom>
@@ -101,6 +101,7 @@ import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import type { ComboState } from '@/domain/value/ComboState';
 import { type Difficulty, DifficultyList } from '@/domain/value/Difficulty';
 import { Score } from '@/domain/entity/Score';
+import { watch } from 'vue';
 
 const defaultHeaders = [
   { title: '', align: 'center', sortable: false, key: 'jacketUrl' },
@@ -116,7 +117,7 @@ const defaultHeaders = [
 const { xs } = useDisplay();
 const { findMusic } = useMusicStore();
 const { findScore, upsertData } = useScoreStore();
-const { completedData } = useAnalyzerStore();
+const { getRegisterData } = useAnalyzerStore();
 const { confirm, notice } = useConfirmDialog();
 const { show, hidden } = useProgressOverlay();
 
@@ -126,6 +127,7 @@ const pageSizeList = [10, 30, 50, 100, 300];
 const page = ref(1);
 const itemsPerPage = ref(30);
 const pageCount = computed(() => Math.floor(items.value.length / itemsPerPage.value) + 1);
+const isRegister = ref<boolean[]>([]);
 
 interface RowItem {
   /** 楽曲ID */
@@ -151,8 +153,8 @@ interface RowItem {
   };
   /** スコアデータ */
   score: Score;
-  /** 登録 */
-  isRegister: boolean;
+  /** 過去スコアデータ */
+  beforeScore: Score;
 }
 
 const customKeySort: Record<string, (a: any, b: any) => number> = {
@@ -177,10 +179,7 @@ const customKeySort: Record<string, (a: any, b: any) => number> = {
 };
 
 const items = computed(() => {
-  const scoreRecords: RowItem[] = completedData.flatMap((data) => {
-    if (data.isUnregister === true) {
-      return [];
-    }
+  const scoreRecords: RowItem[] = getRegisterData().flatMap((data) => {
     const music = findMusic(data.score.musicId);
     const diff = music?.getDifficulty(data.score.difficulty);
     if (music === undefined || diff === undefined) {
@@ -215,7 +214,7 @@ const items = computed(() => {
         combo: compareColor(beforeScore.combo, data.score.combo),
       },
       score: data.score,
-      isRegister: beforeScore.compare(data.score) > 0,
+      beforeScore: beforeScore,
     };
 
     return row;
@@ -224,13 +223,23 @@ const items = computed(() => {
   return scoreRecords;
 });
 
+watch(
+  items,
+  (items) => {
+    isRegister.value = items.map((item) => item.beforeScore.compare(item.score) > 0);
+  },
+  { deep: true }
+);
+
+const registerButtonDisabled = computed(() => items.value.filter((_, index) => isRegister.value[index]).length === 0);
+
 const clickRegisterButton = async () => {
-  const registerCount = items.value.filter((item) => item.isRegister).length;
-  const isUnregisterCount = items.value.filter((item) => !item.isRegister).length;
+  const registerData = items.value.filter((_, index) => isRegister.value[index]);
+  const isUnregisterCount = items.value.filter((_, index) => !isRegister.value[index]).length;
 
   const warnings = [
     `<li>曲数：${items.value.length}曲</li>`,
-    `<li>登録曲数：${registerCount}曲（除外数：${isUnregisterCount}曲）</li>`,
+    `<li>登録曲数：${registerData.length}曲（除外数：${isUnregisterCount}曲）</li>`,
   ];
 
   const message = `<p>スコアを登録します。よろしいですか？</p><br><div><ul>${warnings.join('')}</ul></div>`;
@@ -240,7 +249,7 @@ const clickRegisterButton = async () => {
 
   try {
     show();
-    const registerTargets = items.value.filter((item) => item.isRegister).map((item) => new Score(item.score));
+    const registerTargets = registerData.map((item) => new Score(item.score));
     await upsertData(registerTargets);
     notice({ title: '登録完了', text: `登録が完了しました。` });
   } catch (e) {

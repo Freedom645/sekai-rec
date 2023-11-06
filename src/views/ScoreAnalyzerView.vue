@@ -8,7 +8,7 @@
           :value="item.value"
           :title="item.title"
           :rules="item.rules"
-          :disabled="item.value >= 2 && completedData.length === 0"
+          :disabled="item.value === 2 ? !isCompleted() : item.value === 3 ? !isCompleted() || hasIllegality : false"
           icon="mdi-alert"
         />
       </v-stepper-header>
@@ -21,7 +21,7 @@
   </v-container>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { VStepper, VStepperHeader, VStepperItem, VStepperWindow, VStepperWindowItem } from 'vuetify/labs/components';
 import AnalyzeSetting, { type Settings } from '@/components/ResultAnalyzer/AnalyzeSetting.vue';
 import AnalyzeProgress from '@/components/ResultAnalyzer/AnalyzeProgress.vue';
@@ -36,25 +36,50 @@ const {
   setSettings,
   startAnalyzing,
   progress: { errorText },
-  completedData,
+  isCompleted,
+  getIllegalityDataIndex,
 } = useAnalyzerStore();
 const { fetchAllData } = useScoreStore();
 
 const { notice } = useConfirmDialog();
 
 const stepperItems = [
-  { title: '1. 設定', value: 0, rules: [() => true], component: AnalyzeSetting },
-  { title: '2. 解析', value: 1, rules: [() => true], component: AnalyzeProgress },
-  { title: '3. 結果修正', value: 2, rules: [() => errorText === ''], component: AnalyzeResult },
-  { title: '4. 確認', value: 3, rules: [() => true], component: AnalyzeUpdateTable },
+  { title: '1. 設定', value: 0, rules: [], component: AnalyzeSetting },
+  { title: '2. 解析', value: 1, rules: [() => errorText === ''], component: AnalyzeProgress },
+  {
+    title: '3. 結果修正',
+    value: 2,
+    rules: [() => getIllegalityDataIndex().length === 0],
+    component: AnalyzeResult,
+  },
+  {
+    title: '4. 確認',
+    value: 3,
+    rules: [],
+    component: AnalyzeUpdateTable,
+  },
 ];
 
 const step = ref(0);
 
 onMounted(() => fetchAllData());
 
-const submitSettings = async (arg: Settings) => {
+const hasIllegality = computed(() => getIllegalityDataIndex().length > 0);
+
+function isSettings(arg: any): arg is Settings {
+  if (arg == null) {
+    return false;
+  }
+  const valid = ['files', 'preset'];
+  return Object.keys(arg).every((key) => valid.some((v) => v === key));
+}
+
+const submitSettings = async (arg: unknown) => {
   step.value = 1;
+
+  if (!isSettings(arg)) {
+    throw new Error('implementation error.');
+  }
 
   setSettings(arg);
   const errorText = await startAnalyzing();
