@@ -139,12 +139,12 @@ export class AnalysisService {
 
       // 二値化
       const range = e.analysisRange();
-      const cropped = dist.binarizeNew(value, range);
+      const cropped = imageCanvas.binarizeNew(value, range);
 
       // 書き込み
       dist.drawImage(cropped, undefined, range);
       return dist;
-    }, imageCanvas);
+    }, new ImageCanvas({ w: imageCanvas.w, h: imageCanvas.h }, 'black'));
 
     return dist;
   }

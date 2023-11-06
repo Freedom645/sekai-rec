@@ -9,12 +9,16 @@ export class ImageCanvas implements Size {
   /** Canvas要素 */
   private readonly canvas: HTMLCanvasElement;
 
-  constructor(size: Size) {
+  constructor(size: Size, fill?: string) {
     this.canvas = document.createElement('canvas');
     this.canvas.width = size.w;
     this.canvas.height = size.h;
     this.w = size.w;
     this.h = size.h;
+
+    if (fill !== undefined) {
+      this.fillRectangle(this.toRect(), { fillStyle: fill });
+    }
   }
 
   /**
@@ -63,7 +67,7 @@ export class ImageCanvas implements Size {
   }
 
   /**
-   * 画像に矩形を描画する
+   * 画像に矩形の輪郭を描画する
    * @param rect 描画範囲
    * @param options 描画オプション
    * @returns 自身のインスタンス
@@ -76,6 +80,19 @@ export class ImageCanvas implements Size {
     ctx.lineWidth = options?.lineWidth ?? 3;
     ctx.stroke();
 
+    return this;
+  }
+
+  /**
+   * 画像に塗りつぶした矩形を描画する
+   * @param rect 描画範囲
+   * @param options 描画オプション
+   * @returns 自身のインスタンス
+   */
+  public fillRectangle(rect: Rectangle, options?: { fillStyle?: string }): ImageCanvas {
+    const ctx = this.canvas.getContext('2d')!;
+    ctx.fillStyle = options?.fillStyle ?? 'black';
+    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
     return this;
   }
 
