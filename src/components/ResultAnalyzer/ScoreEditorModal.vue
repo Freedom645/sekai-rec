@@ -37,6 +37,7 @@
                       type="number"
                       :rules="AccuracyRules"
                       v-model.number="scoreData.accuracy[acc]"
+                      variant="outlined"
                       density="compact"
                     >
                       <template v-slot:label>
@@ -52,6 +53,7 @@
                       label="Combo"
                       :rules="ScoreDetailRules"
                       v-model.number="scoreData.combo"
+                      variant="outlined"
                       density="compact"
                     >
                       <template v-slot:label>
@@ -65,7 +67,9 @@
                       :label="input.name"
                       :rules="ScoreDetailRules"
                       v-model.number="scoreData.judgement[input.key]"
+                      variant="outlined"
                       density="compact"
+                      hide-details
                     >
                       <template v-slot:label>
                         <span

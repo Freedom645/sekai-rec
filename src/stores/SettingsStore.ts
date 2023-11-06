@@ -17,7 +17,7 @@ export type ScoreColumnKey = (typeof ScoreColumnKey)[keyof typeof ScoreColumnKey
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
     scoreView: {
-      filterCondition: emptyCondition(38) as FilterCondition,
+      filterCondition: emptyCondition(37) as FilterCondition,
       columns: Object.values(ScoreColumnKey) as ScoreColumnKey[],
     },
   }),

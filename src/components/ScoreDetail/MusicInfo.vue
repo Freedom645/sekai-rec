@@ -28,6 +28,7 @@ import { VContainer, VRow, VCol, VImg } from 'vuetify/components';
 import DifficultyRank from '@/components/atomic/DifficultyRank.vue';
 import { useMusicStore } from '@/stores/MusicStore';
 import type { Difficulty } from '@/domain/value/Difficulty';
+import { padZero } from '@/core/utils/Parser';
 
 const props = defineProps({
   musicId: {
@@ -43,7 +44,7 @@ const props = defineProps({
 const { findMusic } = useMusicStore();
 const music = computed(() => findMusic(props.musicId));
 const jacketSrc = computed(() => {
-  const pad = ('000' + props.musicId.toString()).slice(-3);
+  const pad = padZero(props.musicId, 3);
   return `https://storage.sekai.best/sekai-assets/music/jacket/jacket_s_${pad}_rip/jacket_s_${pad}.webp`;
 });
 </script>

@@ -42,6 +42,7 @@
         <v-row>
           <v-col>
             <v-select
+              variant="outlined"
               density="compact"
               v-model="filterCondition.level.low"
               @update:modelValue="updateLevelRange('low')"
@@ -52,6 +53,7 @@
           <v-icon class="mt-5" icon="mdi-tilde" />
           <v-col>
             <v-select
+              variant="outlined"
               density="compact"
               v-model="filterCondition.level.high"
               @update:modelValue="updateLevelRange('high')"
@@ -120,16 +122,21 @@ import MusicAutocomplete from '@/components/atomic/MusicAutocomplete.vue';
 import ComboStateLabel from '../atomic/ComboStateLabel.vue';
 import { useMusicStore } from '@/stores/MusicStore';
 import { useSettingsStore } from '@/stores/SettingsStore';
-import { emptyCondition } from '@/model/Filter';
+import { cloneCondition, emptyCondition } from '@/model/Filter';
 import { DifficultyList } from '@/domain/value/Difficulty';
 import { ComboState } from '@/domain/value/ComboState';
 
 const { maxLevel } = useMusicStore();
-const { applyFilterCondition } = useSettingsStore();
+const {
+  applyFilterCondition,
+  scoreView: { filterCondition: condition },
+} = useSettingsStore();
 
-const LevelList: number[] = Array(maxLevel)
-  .fill(0)
-  .map((_, index) => index + 1);
+const LevelList = computed(() =>
+  Array(maxLevel)
+    .fill(0)
+    .map((_, index) => index + 1)
+);
 
 const comboRadioConditions = [
   { label: 'なし', value: 'none' },
@@ -137,7 +144,7 @@ const comboRadioConditions = [
   { label: '済', value: 'include', color: 'blue' },
 ];
 
-const filterCondition = ref(emptyCondition(maxLevel));
+const filterCondition = ref(cloneCondition(condition));
 
 const updateLevelRange = (kind: 'low' | 'high'): void => {
   const level = filterCondition.value.level;

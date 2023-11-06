@@ -10,7 +10,12 @@ export class Music {
   public readonly difficulties: MusicDifficulty[];
   constructor(args: { musicId: number; title: string; difficulties: MusicDifficulty[] }) {
     this.id = args.musicId;
-    this.title = args.title;
+    if (this.id === 388) {
+      // 初音ミクの激唱 full
+      this.title = `${args.title} FULL ver.`;
+    } else {
+      this.title = args.title;
+    }
     this.difficulties = args.difficulties;
   }
 

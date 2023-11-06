@@ -5,7 +5,7 @@
         <v-pagination
           :model-value="window + 1"
           @update:model-value="window = $event - 1"
-          :length="completedData.urls.length"
+          :length="completedData.length"
           :total-visible="4"
         />
         <v-tooltip text="警告の出ているリザルトまでスキップします。" open-delay="600">
@@ -16,7 +16,7 @@
               density="comfortable"
               variant="outlined"
               color="warning"
-              :disabled="illegalityDataIndex.length === 0"
+              :disabled="nextIllegalityDataButtonDisabled"
               @click="nextIllegalityData()"
             />
           </template>
@@ -29,7 +29,7 @@
               color="accent"
               prepend-icon="mdi-note-edit"
               @click="fixScoreData()"
-              :disabled="!!completedData.isUnregister[window]"
+              :disabled="!!isUnregister[window]"
             >
               スコア修正
             </v-btn>
@@ -43,13 +43,13 @@
                     v-bind="props"
                     label="登録対象外にする"
                     hide-details
-                    :model-value="!!completedData.isUnregister[window]"
-                    @update:model-value="completedData.isUnregister[window] = $event"
+                    :model-value="!!isUnregister[window]"
+                    @update:model-value="isUnregister[window] = $event"
                   />
                 </template>
               </v-tooltip>
             </v-sheet>
-            <v-btn color="primary" @click="next()">次へ</v-btn>
+            <v-btn color="primary" :disabled="nextButtonDisabled" @click="next()">次へ</v-btn>
           </v-col>
         </v-row>
       </v-col>
@@ -57,35 +57,31 @@
     <v-row>
       <v-col>
         <v-window v-model="window">
-          <v-window-item v-for="(url, index) in completedData.urls" :key="url">
+          <v-window-item v-for="data in completedData" :key="data.originalImage">
             <v-row>
               <v-col cols="12" md="6">
                 <v-responsive :aspect-ratio="16 / 9">
                   <v-img
-                    :src="showGrayscale ? completedData.thresholdUrls[index].default : url"
+                    :src="showGrayscale ? data.preprocessedImage : data.originalImage"
                     @click="showGrayscale = !showGrayscale"
                   />
                 </v-responsive>
               </v-col>
               <v-col>
-                <music-info
-                  v-if="completedData.scoreData[index]"
-                  :music-id="completedData.scoreData[index].musicId"
-                  :difficulty="completedData.scoreData[index].difficulty"
-                />
-                <score-detail v-if="completedData.scoreData[index]" :score="completedData.scoreData[index]" />
+                <music-info v-if="data.score" :music-id="data.score.musicId" :difficulty="data.score.difficulty" />
+                <score-detail v-if="data.score" :score="data.score" />
               </v-col>
             </v-row>
             <v-row>
               <v-col>
-                <template v-if="completedData.scoreData[index]">
+                <template v-if="data.score">
                   <score-data-checker
-                    v-if="completedData.scoreData[index]"
-                    :music-id="completedData.scoreData[index].musicId"
-                    :difficulty="completedData.scoreData[index].difficulty"
-                    :accuracy-count="completedData.scoreData[index].accuracy"
-                    :judgment-count="completedData.scoreData[index].judgement"
-                    :combo="completedData.scoreData[index].combo"
+                    v-if="data.score"
+                    :music-id="data.score.musicId"
+                    :difficulty="data.score.difficulty"
+                    :accuracy-count="data.score.accuracy"
+                    :judgment-count="data.score.judgement"
+                    :combo="data.score.combo"
                     openIfError
                   />
                 </template>
@@ -100,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { VImg, VPagination } from 'vuetify/components';
 import MusicInfo from '@/components/ScoreDetail/MusicInfo.vue';
 import ScoreDetail from '@/components/ScoreDetail/ScoreDetail.vue';
@@ -108,11 +104,9 @@ import ScoreDataChecker from '@/components/DataChecker/ScoreDataChecker.vue';
 import ScoreEditorModal from './ScoreEditorModal.vue';
 import { useAnalyzerStore } from '@/stores/AnalyzerStore';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
-import { Checker } from '@/module/Corrector';
-import { useMusicStore } from '@/stores/MusicStore';
+import { computed } from 'vue';
 
-const { completedData } = useAnalyzerStore();
-const { findMusic } = useMusicStore();
+const { completedData, isUnregister, getRegisterData, getIllegalityDataIndex } = useAnalyzerStore();
 const { notice } = useConfirmDialog();
 
 const window = ref(0);
@@ -125,36 +119,24 @@ const fixScoreData = () => {
   editorIsOpen.value = true;
 };
 
-const illegalityDataIndex = computed(() =>
-  completedData.scoreData.flatMap((data, index) => {
-    const music = findMusic(data.musicId);
-    if (music === undefined) {
-      return index;
-    }
-    if (completedData.isUnregister[index]) {
-      return [];
-    }
-    if (Object.values(Checker).every((v) => v.validator(music, data) === '')) {
-      return [];
-    }
-    return index;
-  })
-);
-
+const nextIllegalityDataButtonDisabled = computed(() => getIllegalityDataIndex().length === 0);
 const nextIllegalityData = () => {
-  if (illegalityDataIndex.value.length === 0) {
+  const indexList = getIllegalityDataIndex();
+  console.log(indexList);
+  if (indexList.length === 0) {
     return;
   }
-  const next = illegalityDataIndex.value.findIndex((i) => window.value < i);
+  const next = indexList.findIndex((i) => window.value < i);
   if (next === -1) {
-    window.value = illegalityDataIndex.value[0];
+    window.value = indexList[0];
     return;
   }
-  window.value = illegalityDataIndex.value[next];
+  window.value = indexList[next];
 };
 
+const nextButtonDisabled = computed(() => getRegisterData().length === 0);
 const next = () => {
-  const illegalNum = illegalityDataIndex.value.length;
+  const illegalNum = getIllegalityDataIndex().length;
   if (illegalNum > 0) {
     notice({
       title: '解析エラー',

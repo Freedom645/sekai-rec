@@ -3,7 +3,7 @@
   <v-container class="pa-0">
     <v-row>
       <v-col class="d-flex justify-end">
-        <v-btn color="primary" @click="clickRegisterButton()">登録</v-btn>
+        <v-btn color="primary" :disabled="registerButtonDisabled" @click="clickRegisterButton()">登録</v-btn>
       </v-col>
     </v-row>
     <v-data-table
@@ -59,19 +59,19 @@
         </div>
       </template>
 
-      <template v-slot:item.check="{ item: { raw } }">
-        <v-checkbox v-model="(raw as RowItem).isRegister" color="secondary" hide-details />
+      <template v-slot:item.check="{ item: { index } }">
+        <v-checkbox v-model="isRegister[index as number] " color="secondary" hide-details />
       </template>
 
       <template v-slot:bottom>
         <v-container>
           <v-row justify="center">
-            <v-col cols="12" sm="8">
-              <v-pagination variant="tonal" density="compact" v-model="page" :length="pageCount" />
+            <v-col cols="12" sm="8" md="10">
+              <v-pagination variant="outlined" density="compact" v-model="page" :length="pageCount" />
             </v-col>
-            <v-col cols="4" sm="3" md="2">
+            <v-col cols="6" sm="4" md="2">
               <v-select
-                variant="filled"
+                variant="outlined"
                 density="compact"
                 :items="pageSizeList"
                 v-model="itemsPerPage"
@@ -101,6 +101,8 @@ import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import type { ComboState } from '@/domain/value/ComboState';
 import { type Difficulty, DifficultyList } from '@/domain/value/Difficulty';
 import { Score } from '@/domain/entity/Score';
+import { watch } from 'vue';
+import { padZero } from '@/core/utils/Parser';
 
 const defaultHeaders = [
   { title: '', align: 'center', sortable: false, key: 'jacketUrl' },
@@ -116,7 +118,7 @@ const defaultHeaders = [
 const { xs } = useDisplay();
 const { findMusic } = useMusicStore();
 const { findScore, upsertData } = useScoreStore();
-const { completedData } = useAnalyzerStore();
+const { getRegisterData } = useAnalyzerStore();
 const { confirm, notice } = useConfirmDialog();
 const { show, hidden } = useProgressOverlay();
 
@@ -126,6 +128,7 @@ const pageSizeList = [10, 30, 50, 100, 300];
 const page = ref(1);
 const itemsPerPage = ref(30);
 const pageCount = computed(() => Math.floor(items.value.length / itemsPerPage.value) + 1);
+const isRegister = ref<boolean[]>([]);
 
 interface RowItem {
   /** 楽曲ID */
@@ -151,8 +154,8 @@ interface RowItem {
   };
   /** スコアデータ */
   score: Score;
-  /** 登録 */
-  isRegister: boolean;
+  /** 過去スコアデータ */
+  beforeScore: Score;
 }
 
 const customKeySort: Record<string, (a: any, b: any) => number> = {
@@ -177,17 +180,14 @@ const customKeySort: Record<string, (a: any, b: any) => number> = {
 };
 
 const items = computed(() => {
-  const scoreRecords: RowItem[] = completedData.scoreData.flatMap((score, index) => {
-    if (completedData.isUnregister[index] === true) {
-      return [];
-    }
-    const music = findMusic(score.musicId);
-    const diff = music?.getDifficulty(score.difficulty);
+  const scoreRecords: RowItem[] = getRegisterData().flatMap((data) => {
+    const music = findMusic(data.score.musicId);
+    const diff = music?.getDifficulty(data.score.difficulty);
     if (music === undefined || diff === undefined) {
       return [];
     }
 
-    const beforeScore = findScore(score.musicId, score.difficulty) ?? Score.emptyScoreData();
+    const beforeScore = findScore(data.score.musicId, data.score.difficulty) ?? Score.emptyScoreData();
 
     const compareColor = (before: number, after: number) => {
       const diff = before - after;
@@ -200,22 +200,22 @@ const items = computed(() => {
       return 'red';
     };
 
-    const musicIdPad = ('000' + music.id.toString()).slice(-3);
+    const musicIdPad = padZero(music.id, 3);
     const row: RowItem = {
-      musicId: score.musicId,
+      musicId: data.score.musicId,
       jacketUrl: `https://storage.sekai.best/sekai-assets/music/jacket/jacket_s_${musicIdPad}_rip/jacket_s_${musicIdPad}.webp`,
       title: music.title,
-      difficulty: score.difficulty,
-      comboState: [beforeScore.comboState(diff.noteCount), score.comboState(diff.noteCount)],
-      rankMatchScore: [beforeScore.calcRankMatchScore(), score.calcRankMatchScore()],
-      accuracyScore: [beforeScore.getScoreAccuracy(), score.getScoreAccuracy()],
-      combo: [beforeScore.combo, score.combo],
+      difficulty: data.score.difficulty,
+      comboState: [beforeScore.comboState(diff.noteCount), data.score.comboState(diff.noteCount)],
+      rankMatchScore: [beforeScore.calcRankMatchScore(), data.score.calcRankMatchScore()],
+      accuracyScore: [beforeScore.getScoreAccuracy(), data.score.getScoreAccuracy()],
+      combo: [beforeScore.combo, data.score.combo],
       color: {
-        rankMatchScore: compareColor(beforeScore.calcRankMatchScore(), score.calcRankMatchScore()),
-        combo: compareColor(beforeScore.combo, score.combo),
+        rankMatchScore: compareColor(beforeScore.calcRankMatchScore(), data.score.calcRankMatchScore()),
+        combo: compareColor(beforeScore.combo, data.score.combo),
       },
-      score: score,
-      isRegister: beforeScore.compare(score) > 0,
+      score: data.score,
+      beforeScore: beforeScore,
     };
 
     return row;
@@ -224,13 +224,23 @@ const items = computed(() => {
   return scoreRecords;
 });
 
+watch(
+  items,
+  (items) => {
+    isRegister.value = items.map((item) => item.beforeScore.compare(item.score) > 0);
+  },
+  { deep: true }
+);
+
+const registerButtonDisabled = computed(() => items.value.filter((_, index) => isRegister.value[index]).length === 0);
+
 const clickRegisterButton = async () => {
-  const registerCount = items.value.filter((item) => item.isRegister).length;
-  const isUnregisterCount = items.value.filter((item) => !item.isRegister).length;
+  const registerData = items.value.filter((_, index) => isRegister.value[index]);
+  const isUnregisterCount = items.value.filter((_, index) => !isRegister.value[index]).length;
 
   const warnings = [
     `<li>曲数：${items.value.length}曲</li>`,
-    `<li>登録曲数：${registerCount}曲（除外数：${isUnregisterCount}曲）</li>`,
+    `<li>登録曲数：${registerData.length}曲（除外数：${isUnregisterCount}曲）</li>`,
   ];
 
   const message = `<p>スコアを登録します。よろしいですか？</p><br><div><ul>${warnings.join('')}</ul></div>`;
@@ -240,7 +250,7 @@ const clickRegisterButton = async () => {
 
   try {
     show();
-    const registerTargets = items.value.filter((item) => item.isRegister).map((item) => new Score(item.score));
+    const registerTargets = registerData.map((item) => new Score(item.score));
     await upsertData(registerTargets);
     notice({ title: '登録完了', text: `登録が完了しました。` });
   } catch (e) {
