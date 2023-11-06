@@ -66,12 +66,12 @@
       <template v-slot:bottom>
         <v-container>
           <v-row justify="center">
-            <v-col cols="12" sm="8">
-              <v-pagination variant="tonal" density="compact" v-model="page" :length="pageCount" />
+            <v-col cols="12" sm="8" md="10">
+              <v-pagination variant="outlined" density="compact" v-model="page" :length="pageCount" />
             </v-col>
-            <v-col cols="4" sm="3" md="2">
+            <v-col cols="6" sm="4" md="2">
               <v-select
-                variant="filled"
+                variant="outlined"
                 density="compact"
                 :items="pageSizeList"
                 v-model="itemsPerPage"

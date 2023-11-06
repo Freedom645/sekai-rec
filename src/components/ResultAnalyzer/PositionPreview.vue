@@ -10,6 +10,7 @@
           item-value="key"
           item-title="name"
           hide-details
+          variant="outlined"
           density="compact"
           return-object
           single-line

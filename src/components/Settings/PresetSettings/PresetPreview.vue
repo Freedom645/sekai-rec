@@ -5,6 +5,7 @@
         v-model="files"
         accept="image/*"
         label="リザルト画像"
+        variant="outlined"
         density="compact"
         hide-details
         prepend-icon="mdi-camera"

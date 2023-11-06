@@ -1,6 +1,7 @@
 <template>
   <v-autocomplete
     label="楽曲名"
+    variant="outlined"
     :model-value="props.modelValue"
     @update:model-value="updateInput($event)"
     :items="state.musics"

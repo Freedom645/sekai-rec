@@ -7,6 +7,9 @@
           v-model="settings.files"
           accept="image/*"
           label="リザルト画像"
+          density="compact"
+          variant="outlined"
+          hide-details
           multiple
           counter
         />

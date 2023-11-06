@@ -9,12 +9,11 @@
     :customKeySort="customKeySort"
     hide-default-footer
     fixed-header
-    multiSort
     noDataText="データがありません。"
     @click:row="(_: any, row: any) => emits('clickRow', { id: row.item.raw.musicId, diff: row.item.raw.difficulty })"
   >
     <template v-slot:item.jacketUrl="props">
-      <v-img width="50" :src="props.item.columns.jacketUrl" />
+      <v-img width="50px" :src="props.item.columns.jacketUrl" :aspect-ratio="1" />
     </template>
     <template v-slot:item.title="props">
       <span class="font-weight-medium">
@@ -37,12 +36,12 @@
     <template v-slot:bottom>
       <v-container>
         <v-row justify="center">
-          <v-col cols="12" sm="8">
-            <v-pagination variant="tonal" density="compact" v-model="page" :length="pageCount" />
+          <v-col cols="12" sm="8" md="10">
+            <v-pagination variant="outlined" density="compact" v-model="page" :length="pageCount" />
           </v-col>
-          <v-col cols="4" sm="3" md="2">
+          <v-col cols="6" sm="3" md="2">
             <v-select
-              variant="filled"
+              variant="outlined"
               density="compact"
               :items="pageSizeList"
               v-model="itemsPerPage"
@@ -69,13 +68,13 @@ import { ComboState } from '@/domain/value/ComboState';
 import { type Difficulty, DifficultyList } from '@/domain/value/Difficulty';
 
 const defaultHeaders = [
-  { title: '', align: 'center', sortable: false, key: 'jacketUrl' },
-  { title: '楽曲名', align: 'start', sortable: true, key: 'title' },
+  { title: '', align: 'center', sortable: false, key: 'jacketUrl', width: '50px' },
+  { title: '楽曲名', align: 'start', sortable: true, key: 'title', width: '14em' },
   { title: '難易度', align: 'start', sortable: true, key: 'difficulty' },
   { title: 'Lv', align: 'start', sortable: true, key: 'level' },
   { title: 'スコア', align: 'end', sortable: true, key: 'rankMatchScore' },
   { title: 'スコア (減点)', align: 'end', sortable: true, key: 'apDiffScore' },
-  { title: 'スコア (精度)', align: 'end', sortable: true, key: 'accuracyScore' },
+  { title: 'スコア (精度)', align: 'end', sortable: true, key: 'accuracyScore', width: '8em' },
   { title: 'スコア (割合)', align: 'end', sortable: true, key: 'scoreRate' },
 ];
 
@@ -107,7 +106,7 @@ const Filters: Record<string, (row: RowItem) => boolean> = {
 };
 
 // data
-const pageSizeList = [10, 30, 50, 100, 300];
+const pageSizeList = [10, 30, 50, 100, 150];
 
 const page = ref(1);
 const itemsPerPage = ref(30);

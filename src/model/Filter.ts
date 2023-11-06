@@ -12,6 +12,8 @@ export interface FilterCondition {
   showUnregister: boolean;
 }
 
+export const cloneCondition = (c: FilterCondition): FilterCondition => JSON.parse(JSON.stringify(c));
+
 export const emptyCondition = (maxLevel: number): FilterCondition => ({
   musicTitle: '',
   difficultyCheckState: DifficultyList.reduce(

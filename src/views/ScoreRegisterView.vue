@@ -22,6 +22,7 @@
         <v-col cols="6" sm="3" lg="2" v-for="acc in AccuracyList" :key="acc">
           <v-text-field
             type="number"
+            variant="outlined"
             :rules="AccuracyRules"
             v-model.number="state.accuracyCount[acc]"
             density="compact"
@@ -37,6 +38,7 @@
         <v-col cols="6" sm="3" lg="2">
           <v-text-field
             type="number"
+            variant="outlined"
             label="Combo"
             :rules="ScoreDetailRules"
             v-model.number="state.combo"
@@ -50,6 +52,7 @@
         <v-col v-for="input in ScoreDetailInputs" :key="input.key" cols="6" sm="3" lg="2">
           <v-text-field
             type="number"
+            variant="outlined"
             :label="input.name"
             :rules="ScoreDetailRules"
             v-model.number="state.judgmentCount[input.key]"
