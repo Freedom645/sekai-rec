@@ -1,5 +1,5 @@
+import { editONP } from '@/core/EditDistance';
 import type { Music } from '@/domain/entity/Music';
-import { editONP } from './EditDistance';
 import { Accuracy, JudgmentList, Score } from '@/domain/entity/Score';
 
 export const searchFuzzy = (str: string, list: Music[]) => {

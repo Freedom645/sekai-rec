@@ -62,10 +62,16 @@ export class ImageCanvas implements Size {
     return dist;
   }
 
-  public drawRectangle(r: Rectangle, options?: { strokeStyle?: string; lineWidth?: number }): ImageCanvas {
+  /**
+   * 画像に矩形を描画する
+   * @param rect 描画範囲
+   * @param options 描画オプション
+   * @returns 自身のインスタンス
+   */
+  public drawRectangle(rect: Rectangle, options?: { strokeStyle?: string; lineWidth?: number }): ImageCanvas {
     const ctx = this.canvas.getContext('2d')!;
     ctx.beginPath();
-    ctx.rect(r.x, r.y, r.w, r.h);
+    ctx.rect(rect.x, rect.y, rect.w, rect.h);
     ctx.strokeStyle = options?.strokeStyle ?? 'red';
     ctx.lineWidth = options?.lineWidth ?? 3;
     ctx.stroke();
@@ -76,8 +82,8 @@ export class ImageCanvas implements Size {
   /**
    * 二値化処理をして新しい画像データを生成する
    * @param threshold 閾値
-   * @param range 範囲
-   * @returns
+   * @param range 切り出す範囲
+   * @returns 二値化後の新たなデータ
    */
   public binarizeNew(threshold: number, range?: Rectangle): ImageCanvas {
     if (range === undefined) {
@@ -93,6 +99,12 @@ export class ImageCanvas implements Size {
     return dist;
   }
 
+  /**
+   * 二値化用の走査処理をする
+   * @param data ピクセルデータ
+   * @param threshold 閾値
+   * @returns 二値化後のピクセルデータ
+   */
   private threshold(data: ImageData, threshold: number): ImageData {
     //輝度計算用の係数
     const lum = [0.298912, 0.586611, 0.114478];
@@ -109,6 +121,26 @@ export class ImageCanvas implements Size {
     return data;
   }
 
+  /**
+   * 画像データのクローンを生成する
+   * @returns 生成したクローンデータ
+   */
+  public clone(): ImageCanvas {
+    return this.cropNew(this.toRect());
+  }
+
+  /**
+   * 画像の矩形データを取得する
+   * @returns 矩形データ
+   */
+  public toRect(): Rectangle {
+    return new Rectangle({ x: 0, y: 0, w: this.w, h: this.h });
+  }
+
+  /**
+   * base64データに変換する
+   * @returns base64データ
+   */
   public toDataURL(): string {
     return this.canvas.toDataURL();
   }
