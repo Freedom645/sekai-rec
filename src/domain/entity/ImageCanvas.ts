@@ -155,6 +155,14 @@ export class ImageCanvas implements Size {
   }
 
   /**
+   * 画像のサイズデータを取得する
+   * @returns サイズデータ
+   */
+  public toSize(): Size {
+    return { w: this.w, h: this.h };
+  }
+
+  /**
    * base64データに変換する
    * @returns base64データ
    */

@@ -138,7 +138,7 @@ export class AnalysisService {
       }
 
       // 二値化
-      const range = e.analysisRange();
+      const range = e.analysisRange().scale(imageCanvas.toSize(), settings.imageSize);
       const cropped = imageCanvas.binarizeNew(value, range);
 
       // 書き込み
@@ -163,7 +163,10 @@ export class AnalysisService {
   ): Promise<AnalysisElementResult>[] {
     const url = image.toDataURL();
     const tasks = settings.elements.map(async (e) => {
-      const recognizedStr = await this.analyzerSet[e.analysisMethod()].recognize(url, e.analysisRange());
+      const recognizedStr = await this.analyzerSet[e.analysisMethod()].recognize(
+        url,
+        e.analysisRange().scale(image.toSize(), settings.imageSize)
+      );
       const res: AnalysisElementResult = { index, type: e.analysisElementType(), value: recognizedStr };
       return res;
     });

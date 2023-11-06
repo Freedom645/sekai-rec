@@ -35,18 +35,18 @@ export class Rectangle implements Point, Size {
   }
 
   /**
-   * 矩形データのスケール調整する
-   * @param rate スケールするサイズ
+   * 指定した比率で変換した矩形データを取得する
+   * @param multiplier 乗数サイズ
+   * @param divisor 除数サイズ
    * @returns スケール後の新しいインスタンス
    */
-  public scale(rate: Size): Rectangle {
-    const rect = new Rectangle({
-      x: this.x * rate.w,
-      y: this.y * rate.h,
-      w: this.w * rate.w,
-      h: this.h * rate.h,
+  public scale(multiplier: Size, divisor: Size = { w: 1, h: 1 }): Rectangle {
+    return new Rectangle({
+      x: (this.x * multiplier.w) / (divisor.w ?? 1),
+      y: (this.y * multiplier.h) / (divisor.h ?? 1),
+      w: (this.w * multiplier.w) / (divisor.w ?? 1),
+      h: (this.h * multiplier.h) / (divisor.h ?? 1),
     });
-    return rect;
   }
 
   /**
