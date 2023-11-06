@@ -1,44 +1,44 @@
 import { defineStore } from 'pinia';
-import type { ScoreData } from '@/model/Score';
-import type { DifficultyRank } from '@/model/Game';
-import { DB } from '@/infrastracture/IndexedDB/IndexedDB';
+import type { Score } from '@/domain/entity/Score';
+import type { Difficulty } from '@/domain/value/Difficulty';
+import type { IScoreRepository } from '@/domain/repository/ScoreRepository';
+import { scoreRepository } from '@/infrastracture/IndexedDB/ScoreDB';
+
+const ScoreRepository: IScoreRepository = scoreRepository;
 
 export const useScoreStore = defineStore('score', {
   state: () => ({
-    scoreList: [] as ScoreData[],
+    scoreList: [] as Score[],
     progress: false as boolean,
   }),
   getters: {
-    allData: (state) => state.scoreList,
-    findScore: (state) => (musicId: number, difficulty: DifficultyRank) =>
+    findScore: (state) => (musicId: number, difficulty: Difficulty) =>
       state.scoreList.find((score) => score.musicId === musicId && score.difficulty === difficulty),
   },
   actions: {
     async fetchAllData() {
       try {
         this.progress = true;
-        // this.scoreList = TestData;
+        const data = await ScoreRepository.fetchAllData();
         this.scoreList.splice(0);
-        this.scoreList.push(...(await DB.scoreTable.toArray()));
+        this.scoreList.push(...data);
       } finally {
         this.progress = false;
       }
     },
-    async getScore(musicId: number, difficulty: DifficultyRank) {
+    async getScore(musicId: number, difficulty: Difficulty) {
       try {
         this.progress = true;
-        return await DB.scoreTable.get([musicId, difficulty]);
+        const data = await ScoreRepository.findData(musicId, difficulty);
+        return data;
       } finally {
         this.progress = false;
       }
     },
-    async upsertData(score: ScoreData | ScoreData[]) {
+    async upsertData(score: Score | Score[]) {
       try {
         this.progress = true;
-        if (Array.isArray(score)) {
-          return await DB.scoreTable.bulkPut(score);
-        }
-        return await DB.scoreTable.put(score);
+        return await ScoreRepository.upsertData(score);
       } finally {
         this.progress = false;
       }

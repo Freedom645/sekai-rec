@@ -60,17 +60,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, nextTick, onMounted } from 'vue';
 import PresetEditor from '@/components/Settings/PresetSettings/PresetEditor.vue';
 import PresetPreview from '@/components/Settings/PresetSettings/PresetPreview.vue';
 import PresetTable from '@/components/Settings/PresetSettings/PresetTable.vue';
 import { Element, ElementList, type ThresholdNumber } from '@/model/Analyze';
-import { generateEmptyPreset, generateEmptyRectangle, type Preset, clonePreset } from '@/model/Analyze';
-import type { Rectangle } from '@/module/ImageProcessor';
+import { generateEmptyPreset, type Preset, clonePreset } from '@/model/Analyze';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
-import { nextTick } from 'vue';
 import { useAnalyzerSettingsStore } from '@/stores/AnalyzerSettingsStore';
-import { onMounted } from 'vue';
+import { Rectangle } from '@/core/Geometry';
 
 const { getPresetList, fetchPreset, savePreset, deletePreset } = useAnalyzerSettingsStore();
 const { confirm, notice } = useConfirmDialog();
@@ -82,7 +80,7 @@ const selectedPresetKey = ref<string | undefined>(undefined);
 const presetEditor = ref<InstanceType<typeof PresetEditor> | null>();
 const presetPreview = ref<InstanceType<typeof PresetPreview> | null>();
 const targetElement = ref<Element>(Element.TITLE);
-const previewRect = ref<Rectangle>(generateEmptyRectangle());
+const previewRect = ref<Rectangle>(Rectangle.emptyRectangle());
 const previewThreshold = ref<ThresholdNumber>({ default: 200 });
 
 onMounted(() => fetchPreset());

@@ -2,88 +2,71 @@
   <v-container>
     <h2>ハイスコア一覧</h2>
     <v-row class="mt-5">
-      <v-col>
+      <v-col class="d-flex justify-space-between">
         <v-btn
           class="mr-3"
+          variant="tonal"
           color="secondary"
-          elevation="4"
-          prepend-icon="mdi-filter-multiple"
+          icon="mdi-filter-multiple-outline"
           @click="() => (showFilter = !showFilter)"
         >
-          フィルタ
         </v-btn>
         <v-btn
-          class="mr-3"
-          color="secondary"
-          elevation="4"
-          prepend-icon="mdi-swap-horizontal-bold"
-          @click="clickChangeScoreDisplay()"
-        >
-          スコア切替
-        </v-btn>
+          color="normal"
+          variant="tonal"
+          icon="mdi-cog-outline"
+          @click="() => (columnSelectorModalState.isOpen = true)"
+        />
       </v-col>
     </v-row>
     <v-expand-transition>
       <v-row v-show="showFilter">
         <v-col>
           <v-card elevation="4">
-            <MusicFilter @apply="applyFilter($event)" />
+            <MusicFilter />
           </v-card>
         </v-col>
       </v-row>
     </v-expand-transition>
     <v-row>
       <v-col>
-        <ScoreTable :filter-condition="filterCondition" :score-type="scoreType" @click-row="clickMusicRecord($event)" />
+        <ScoreTable @click-row="clickMusicRecord($event)" />
       </v-col>
     </v-row>
     <high-score-modal
-      v-model:is-open="modalState.isOpen"
-      :music-id="modalState.musicId"
-      :difficulty="modalState.difficulty"
+      v-model:is-open="scoreDetailModalState.isOpen"
+      :music-id="scoreDetailModalState.musicId"
+      :difficulty="scoreDetailModalState.difficulty"
     />
+    <ColumnSelectorModal v-model:is-open="columnSelectorModalState.isOpen" />
   </v-container>
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, reactive, nextTick } from 'vue';
 import { VContainer, VRow, VCol, VBtn, VExpandTransition, VCard } from 'vuetify/components';
 import MusicFilter from '@/components/ScoreTable/MusicFilter.vue';
-import ScoreTable, { type ScoreType } from '@/components/ScoreTable/ScoreTable.vue';
+import ScoreTable from '@/components/ScoreTable/ScoreTable.vue';
 import HighScoreModal from '@/components/ScoreDetail/HighScoreModal.vue';
-import { DifficultyRank } from '@/model/Game';
-import { emptyCondition, type FilterCondition } from '@/model/Filter';
-import { useMusicStore } from '@/stores/MusicStore';
-import { reactive } from 'vue';
-import { nextTick } from 'vue';
-
-// const router = useRouter();
-const { maxLevel } = useMusicStore();
+import ColumnSelectorModal from '@/components/ScoreTable/ColumnSelectorModal.vue';
+import { Difficulty } from '@/domain/value/Difficulty';
 
 const showFilter = ref(false);
-const filterCondition = ref(emptyCondition(maxLevel));
-const scoreType = ref('rankMatch' as ScoreType);
 
-const modalState = reactive({
+const scoreDetailModalState = reactive({
   isOpen: false,
   musicId: 0,
-  difficulty: DifficultyRank.MASTER as DifficultyRank,
+  difficulty: Difficulty.MASTER as Difficulty,
 });
 
-const applyFilter = (event: FilterCondition) => {
-  filterCondition.value = event;
-};
+const columnSelectorModalState = reactive({
+  isOpen: false,
+});
 
-const clickMusicRecord = async (event: { id: number; diff: DifficultyRank }) => {
+const clickMusicRecord = async (event: { id: number; diff: Difficulty }) => {
   // router.push({ path: `/score/${event.id}/${event.diff}` });
-  modalState.musicId = event.id;
-  modalState.difficulty = event.diff;
+  scoreDetailModalState.musicId = event.id;
+  scoreDetailModalState.difficulty = event.diff;
   await nextTick();
-  modalState.isOpen = true;
-};
-
-const clickChangeScoreDisplay = () => {
-  const list: ScoreType[] = ['rankMatch', 'rate', 'ap'];
-  const next = list.findIndex((t) => t === scoreType.value) + 1;
-  scoreType.value = list[next % list.length];
+  scoreDetailModalState.isOpen = true;
 };
 </script>

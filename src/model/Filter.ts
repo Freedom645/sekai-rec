@@ -1,4 +1,4 @@
-import { DifficultyRankList } from '@/model/Game';
+import { DifficultyList } from '@/domain/value/Difficulty';
 
 export interface FilterCondition {
   musicTitle: string;
@@ -7,18 +7,26 @@ export interface FilterCondition {
     low: number;
     high: number;
   };
+  fullCombo: 'none' | 'include' | 'exclude';
+  allPerfect: 'none' | 'include' | 'exclude';
+  showUnregister: boolean;
 }
+
+export const cloneCondition = (c: FilterCondition): FilterCondition => JSON.parse(JSON.stringify(c));
 
 export const emptyCondition = (maxLevel: number): FilterCondition => ({
   musicTitle: '',
-  difficultyCheckState: DifficultyRankList.reduce((pre, cur) => {
-    pre[cur] = true;
-    return pre;
-  }, {} as { [key: string]: boolean }),
+  difficultyCheckState: DifficultyList.reduce(
+    (pre, cur) => Object.assign(pre, { [cur]: true }),
+    {} as { [key: string]: boolean }
+  ),
   level: {
     low: 1,
     high: maxLevel,
   },
+  fullCombo: 'none',
+  allPerfect: 'none',
+  showUnregister: false,
 });
 
 abstract class Filter<T> {

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import Presets from '@/assets/settings/presets.json';
 import { ElementList, clonePreset, type ImagePosition, type Preset } from '@/model/Analyze';
+import { Rectangle } from '@/core/Geometry';
 import { DB } from '@/infrastracture/IndexedDB/IndexedDB';
 
 const generateDefaultData = () => {
@@ -8,7 +9,12 @@ const generateDefaultData = () => {
     const preset = Presets[key];
     const position = ElementList.reduce((obj, element) => {
       return Object.assign(obj, {
-        [element]: { x: preset[element].x, y: preset[element].y, w: preset[element].w, h: preset[element].h },
+        [element]: new Rectangle({
+          x: preset[element].x,
+          y: preset[element].y,
+          w: preset[element].w,
+          h: preset[element].h,
+        }),
       });
     }, {} as ImagePosition);
 

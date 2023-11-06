@@ -152,12 +152,11 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, type PropType } from 'vue';
+import { reactive, type PropType, watch } from 'vue';
 import AccuracyLabel from '@/components/atomic/AccuracyLabel.vue';
 import JudgementLabel from '@/components/atomic/JudgementLabel.vue';
 import { Element, type ThresholdNumber, type Preset, clonePreset, generateEmptyPreset } from '@/model/Analyze';
-import type { Rectangle } from '@/module/ImageProcessor';
-import { watch } from 'vue';
+import type { Rectangle } from '@/core/Geometry';
 
 const elementRadioItems = [
   { key: Element.TITLE, label: 'タイトル', type: 'text' },

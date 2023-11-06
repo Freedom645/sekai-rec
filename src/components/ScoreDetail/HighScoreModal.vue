@@ -29,7 +29,7 @@ import { defineProps } from 'vue';
 import type { PropType } from 'vue';
 import MusicInfo from '@/components/ScoreDetail/MusicInfo.vue';
 import ScoreDetail from '@/components/ScoreDetail/ScoreDetail.vue';
-import type { DifficultyRank } from '@/model/Game';
+import type { Difficulty } from '@/domain/value/Difficulty';
 
 defineProps({
   isOpen: {
@@ -41,7 +41,7 @@ defineProps({
     required: true,
   },
   difficulty: {
-    type: String as PropType<DifficultyRank>,
+    type: String as PropType<Difficulty>,
     required: true,
   },
 });
