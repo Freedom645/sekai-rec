@@ -6,10 +6,11 @@ import type { AnalysisResult } from '@/domain/entity/AnalysisResult';
 import { AnalysisService, type AnalyzerSet, type ICorrector, type IProgress } from '@/domain/service/AnalysisService';
 import { AnalysisMethodType } from '@/domain/value/AnalysisMethodType';
 import { OcrService } from '@/domain/service/OcrService';
-import { AnalysisSetting } from '@/domain/entity/AnalysisSetting';
 import type { RegistrationScore } from '@/domain/entity/RegistrationScore';
-import { PHashService } from '@/domain/service/PHashService';
+import { PHashService, type MusicService } from '@/domain/service/PHashService';
 import { Checker } from '@/module/Corrector';
+import type { IJacketHashRepository } from '@/domain/repository/JacketHashRepository';
+import SekaiRecApi from '@/infrastracture/api/SekaiRecApi';
 
 export interface Settings {
   files: File[];
@@ -94,23 +95,23 @@ export const useAnalyzerStore = defineStore('analyzer', {
           break;
       }
     },
-    generateCorrector(): ICorrector {
-      const { searchFuzzy } = useMusicStore();
-      return {
-        searchMusicTitle: (title) => searchFuzzy(title)[0].musicId,
-        searchDifficulty: (difficulty) => DifficultyList.find((v) => v === difficulty) ?? Difficulty.EASY,
+    injectAnalysisService(): AnalysisService {
+      const { searchFuzzy, findMusic } = useMusicStore();
+      const musicService: MusicService = {
+        search: (id) => findMusic(id)?.title ?? '',
       };
-    },
-    generateSettings(): AnalysisSetting {
-      if (this.settings.preset === undefined) {
-        throw new Error('No preset selected.');
-      }
-
-      return new AnalysisSetting({
-        name: this.settings.preset.name,
-        imageSize: this.settings.preset.size,
-        elements: [],
-      });
+      const jacketHashRepository: IJacketHashRepository = SekaiRecApi;
+      const analyzer: AnalyzerSet = {
+        [AnalysisMethodType.OCR_STRING]: new OcrService('string'),
+        [AnalysisMethodType.OCR_NUMBER]: new OcrService('number', { workerNum: 2 }),
+        [AnalysisMethodType.P_HASH]: new PHashService(jacketHashRepository, musicService),
+      };
+      const corrector: ICorrector = {
+        searchMusicTitle: (title) => searchFuzzy(title)[0].musicId,
+        searchDifficulty: (difficulty) =>
+          DifficultyList.find((v) => v.toString().toUpperCase() === difficulty.toUpperCase()) ?? Difficulty.EASY,
+      };
+      return new AnalysisService({ analyzer, corrector });
     },
     async startAnalyzing(): Promise<string> {
       if (this.settings.files === undefined || this.settings.files.length === 0) {
@@ -122,19 +123,6 @@ export const useAnalyzerStore = defineStore('analyzer', {
       this.initializeProgress();
       const urls = this.settings.files.map((file) => URL.createObjectURL(file));
       try {
-        const analyzer: AnalyzerSet = {
-          [AnalysisMethodType.OCR_STRING]: new OcrService('string'),
-          [AnalysisMethodType.OCR_NUMBER]: new OcrService('number', { workerNum: 2 }),
-          [AnalysisMethodType.P_HASH]: new PHashService(),
-        };
-        const { searchFuzzy } = useMusicStore();
-        const corrector: ICorrector = {
-          searchMusicTitle: (title) => searchFuzzy(title)[0].musicId,
-          searchDifficulty: (difficulty) =>
-            DifficultyList.find((v) => v.toString().toUpperCase() === difficulty.toUpperCase()) ?? Difficulty.EASY,
-        };
-        const analysisService = new AnalysisService({ analyzer, corrector });
-
         const progressUpdater: IProgress = {
           updateSetup: (rate: number): void => {
             this.updateProgress('init', rate);
@@ -152,6 +140,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
 
         const settings = convertPresetToAnalysisSetting(this.settings.preset);
 
+        const analysisService = this.injectAnalysisService();
         const res = await analysisService.execute(urls, settings, progressUpdater);
         this.completedData.push(...res);
 

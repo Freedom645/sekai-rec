@@ -132,18 +132,18 @@ export class AnalysisService {
 
     const dist = settings.elements.reduce((dist, e) => {
       const value = e.binarizeValue();
+      const range = e.analysisRange().scale(imageCanvas.toSize(), settings.imageSize);
       if (value === undefined) {
         // 二値指定されていない場合はスルー
-        return dist;
+        const cropped = imageCanvas.cropNew(range);
+        return dist.drawImage(cropped, undefined, range);
       }
 
       // 二値化
-      const range = e.analysisRange().scale(imageCanvas.toSize(), settings.imageSize);
       const cropped = imageCanvas.binarizeNew(value, range);
 
       // 書き込み
-      dist.drawImage(cropped, undefined, range);
-      return dist;
+      return dist.drawImage(cropped, undefined, range);
     }, new ImageCanvas({ w: imageCanvas.w, h: imageCanvas.h }, 'black'));
 
     return dist;
