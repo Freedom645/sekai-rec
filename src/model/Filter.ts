@@ -1,4 +1,4 @@
-import { DifficultyRankList } from '@/model/Game';
+import { DifficultyList } from '@/domain/value/Difficulty';
 
 export interface FilterCondition {
   musicTitle: string;
@@ -12,9 +12,11 @@ export interface FilterCondition {
   showUnregister: boolean;
 }
 
+export const cloneCondition = (c: FilterCondition): FilterCondition => JSON.parse(JSON.stringify(c));
+
 export const emptyCondition = (maxLevel: number): FilterCondition => ({
   musicTitle: '',
-  difficultyCheckState: DifficultyRankList.reduce(
+  difficultyCheckState: DifficultyList.reduce(
     (pre, cur) => Object.assign(pre, { [cur]: true }),
     {} as { [key: string]: boolean }
   ),

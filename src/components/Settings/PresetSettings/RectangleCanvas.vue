@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Point, Rectangle, Size } from '@/module/ImageProcessor';
+import { Rectangle, type Point, type Size } from '@/core/Geometry';
 import type { PropType } from 'vue';
 import { watch } from 'vue';
 
@@ -100,13 +100,10 @@ const clickCanvas = (event: MouseEvent | TouchEvent) => {
 };
 
 const convertRectangle = (p1: Point, p2: Point): Rectangle => {
-  const { w: rateX, h: rateY } = getSizeRate();
+  const sizeRate = getSizeRate();
+  const rect = Rectangle.fromPoints(p1, p2);
 
-  const x = Math.round(Math.min(p1.x, p2.x) / rateX);
-  const y = Math.round(Math.min(p1.y, p2.y) / rateY);
-  const w = Math.round(Math.abs(p1.x - p2.x) / rateX);
-  const h = Math.round(Math.abs(p1.y - p2.y) / rateY);
-  return { x, y, w, h };
+  return rect.scale(sizeRate);
 };
 
 const clear = (ctx: CanvasRenderingContext2D) => {

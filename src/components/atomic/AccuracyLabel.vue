@@ -12,8 +12,8 @@
 </style>
 
 <script setup lang="ts">
-import { Accuracy } from '@/model/Score';
 import { computed } from 'vue';
+import { Accuracy } from '@/domain/value/Accuracy';
 
 const props = defineProps({
   value: {

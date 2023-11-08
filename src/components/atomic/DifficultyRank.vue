@@ -24,14 +24,14 @@
 </style>
 
 <script lang="ts" setup>
+import { DifficultyList, type Difficulty } from '@/domain/value/Difficulty';
 import { computed, type PropType } from 'vue';
-import { DifficultyRank, DifficultyRankList } from '@/model/Game';
 
 const props = defineProps({
   difficulty: {
-    type: String as PropType<DifficultyRank>,
+    type: String as PropType<Difficulty>,
     required: true,
-    validator: (value) => DifficultyRankList.some((rank) => rank === value),
+    validator: (value) => DifficultyList.some((rank) => rank === value),
   },
   type: {
     type: String as PropType<'label' | 'icon'>,

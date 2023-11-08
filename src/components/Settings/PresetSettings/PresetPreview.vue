@@ -5,6 +5,7 @@
         v-model="files"
         accept="image/*"
         label="リザルト画像"
+        variant="outlined"
         density="compact"
         hide-details
         prepend-icon="mdi-camera"
@@ -39,9 +40,9 @@
 import { onMounted, onUnmounted, ref, watch, defineProps, type PropType, nextTick } from 'vue';
 import { VImg } from 'vuetify/components';
 import RectangleCanvas from './RectangleCanvas.vue';
-import ImageProcessor, { type Rectangle, type Size } from '@/module/ImageProcessor';
-import { generateThresholdUrls } from '@/module/ScoreAnalyzer';
-import type { Element, ThresholdString, ThresholdNumber } from '@/model/Analyze';
+import { type Element, type ThresholdString, type ThresholdNumber, ElementList } from '@/model/Analyze';
+import type { Rectangle, Size } from '@/core/Geometry';
+import { ImageCanvas } from '@/domain/entity/ImageCanvas';
 
 const props = defineProps({
   targetElement: { type: String as PropType<Element>, required: true },
@@ -91,8 +92,18 @@ watch(
 
     const url = URL.createObjectURL(files[0]);
     try {
-      previewUrl.value = await ImageProcessor.drawRectangles(url, []);
-      previewThresholdUrl.value = await generateThresholdUrls(url, thresholdSet);
+      const imageCanvas = await ImageCanvas.loadUrl(url);
+      previewUrl.value = imageCanvas.toDataURL();
+      previewThresholdUrl.value = ElementList.reduce(
+        (obj, e) => {
+          const value = thresholdSet[e];
+          if (value === undefined || value === thresholdSet.default) {
+            return obj;
+          }
+          return Object.assign(obj, { [e]: imageCanvas.binarizeNew(value).toDataURL() });
+        },
+        { default: imageCanvas.binarizeNew(thresholdSet.default).toDataURL() } as ThresholdString
+      );
 
       changeSize();
     } finally {

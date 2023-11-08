@@ -42,29 +42,27 @@
   </v-container>
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, reactive, nextTick } from 'vue';
 import { VContainer, VRow, VCol, VBtn, VExpandTransition, VCard } from 'vuetify/components';
 import MusicFilter from '@/components/ScoreTable/MusicFilter.vue';
 import ScoreTable from '@/components/ScoreTable/ScoreTable.vue';
 import HighScoreModal from '@/components/ScoreDetail/HighScoreModal.vue';
 import ColumnSelectorModal from '@/components/ScoreTable/ColumnSelectorModal.vue';
-import { DifficultyRank } from '@/model/Game';
-import { reactive } from 'vue';
-import { nextTick } from 'vue';
+import { Difficulty } from '@/domain/value/Difficulty';
 
 const showFilter = ref(false);
 
 const scoreDetailModalState = reactive({
   isOpen: false,
   musicId: 0,
-  difficulty: DifficultyRank.MASTER as DifficultyRank,
+  difficulty: Difficulty.MASTER as Difficulty,
 });
 
 const columnSelectorModalState = reactive({
   isOpen: false,
 });
 
-const clickMusicRecord = async (event: { id: number; diff: DifficultyRank }) => {
+const clickMusicRecord = async (event: { id: number; diff: Difficulty }) => {
   // router.push({ path: `/score/${event.id}/${event.diff}` });
   scoreDetailModalState.musicId = event.id;
   scoreDetailModalState.difficulty = event.diff;

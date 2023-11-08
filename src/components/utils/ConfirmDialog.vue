@@ -8,8 +8,10 @@
 
         <v-card-actions>
           <v-spacer />
-          <v-btn v-if="dialogText.ok" color="success" :text="dialogText.ok" @click="() => ok()"></v-btn>
-          <v-btn v-if="dialogText.cancel" :text="dialogText.cancel" @click="() => cancel()"></v-btn>
+          <v-btn v-if="dialogText.ok" variant="flat" color="success" @click="() => ok()">{{ dialogText.ok }}</v-btn>
+          <v-btn v-if="dialogText.cancel" variant="flat" @click="() => cancel()">
+            {{ dialogText.cancel }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </template>

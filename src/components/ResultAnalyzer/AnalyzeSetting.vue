@@ -7,6 +7,9 @@
           v-model="settings.files"
           accept="image/*"
           label="リザルト画像"
+          density="compact"
+          variant="outlined"
+          hide-details
           multiple
           counter
         />
@@ -14,7 +17,7 @@
     </v-row>
     <v-row justify="center">
       <v-col cols="12" md="10">
-        <position-preview v-model:preset="settings.preset" :file="settings.files?.[0]" />
+        <position-preview v-model:preset="settings.preset" :files="settings.files" />
       </v-col>
     </v-row>
     <v-row justify="center">
@@ -50,10 +53,10 @@ const settings = ref({
 } as Settings);
 
 const shortageSettings = computed(() => (settings.value.files?.length ?? 0) === 0);
-const isAnalyzing = computed(() => progress.state.key !== 'not-start' && progress.state.key !== 'completed');
+const isAnalyzing = computed(() => progress.state !== 'not-start' && progress.state !== 'completed');
 
 onBeforeRouteLeave((to, from, next) => {
-  if (shortageSettings.value || progress.state.key !== 'not-start') {
+  if (shortageSettings.value || progress.state !== 'not-start') {
     next();
     return;
   }

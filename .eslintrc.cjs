@@ -10,6 +10,9 @@ module.exports = {
     '@vue/eslint-config-prettier',
     'prettier',
   ],
+  globals: {
+    Jimp: true,
+  },
   parserOptions: {
     ecmaVersion: 'latest',
   },
