@@ -17,3 +17,12 @@ export const DifficultyList = [
   Difficulty.NORMAL,
   Difficulty.EASY,
 ] as const;
+
+export interface DifficultyKV<T> {
+  [Difficulty.APPEND]: T;
+  [Difficulty.MASTER]: T;
+  [Difficulty.EXPERT]: T;
+  [Difficulty.HARD]: T;
+  [Difficulty.NORMAL]: T;
+  [Difficulty.EASY]: T;
+}

@@ -66,11 +66,11 @@
 
 <script setup lang="ts">
 import { ref, watch, type PropType, onMounted } from 'vue';
-import { ElementList, type Preset } from '@/model/Analyze';
+import { convertPresetToAnalysisSetting, type Preset } from '@/model/Analyze';
 import { useAnalyzerSettingsStore } from '@/stores/AnalyzerSettingsStore';
 import { computed } from 'vue';
-import type { Rectangle } from '@/core/Geometry';
 import { ImageCanvas } from '@/domain/entity/ImageCanvas';
+import type { AnalysisSetting } from '@/domain/entity/AnalysisSetting';
 
 const { presets, fetchPreset } = useAnalyzerSettingsStore();
 
@@ -124,39 +124,44 @@ const clickLoadNext = async (size: number = 5) => {
 
   const st = previewImage.value.length;
   const files = props.files.filter((_, index) => st <= index && index < st + size);
-  const preset = props.preset;
 
-  const urls = files.map((files) => URL.createObjectURL(files));
   try {
-    const positions = Object.values(preset.position) as Rectangle[];
-    const data = await Promise.all(
-      urls.map(async (data, index) => {
-        const image = await ImageCanvas.loadUrl(data);
-        const preprocessed = new ImageCanvas(image.toSize(), 'black');
-
-        positions.forEach((rect) => image.drawRectangle(rect.scale(image.toSize(), preset.size)));
-
-        ElementList.forEach((e) => {
-          const position = preset.position[e].scale(image.toSize(), preset.size);
-          preprocessed.drawImage(
-            image.binarizeNew(preset.threshold[e] ?? preset.threshold.default, position),
-            undefined,
-            position
-          );
-        });
-
-        return {
-          name: files[index].name,
-          image: image.toDataURL(),
-          preprocessed: preprocessed.toDataURL(),
-          modifyDate: new Date(files[index].lastModified),
-        } as PreviewData;
-      })
-    );
+    const settings = convertPresetToAnalysisSetting(props.preset);
+    const tasks = files.map((file) => preparePreviewImage(file, settings));
+    const data = await Promise.all(tasks);
     previewImage.value.push(...data);
   } finally {
-    urls.forEach((url) => URL.revokeObjectURL(url));
     isLoading.value = false;
+  }
+};
+
+const preparePreviewImage = async (file: File, settings: AnalysisSetting): Promise<PreviewData> => {
+  const data = URL.createObjectURL(file);
+  try {
+    const imageCanvas = await ImageCanvas.loadUrl(data);
+    const preprocessed = settings.elements.reduce((dist, e) => {
+      const value = e.binarizeValue();
+      const range = e.analysisRange().scale(imageCanvas.toSize(), settings.imageSize);
+
+      // 二値指定有無により、処理の要否を判定
+      const cropped = value === undefined ? imageCanvas.cropNew(range) : imageCanvas.binarizeNew(value, range);
+
+      // 書き込み
+      return dist.drawImage(cropped, undefined, range);
+    }, new ImageCanvas(imageCanvas.toSize(), 'black'));
+
+    settings.elements.forEach((e) =>
+      imageCanvas.drawRectangle(e.analysisRange().scale(imageCanvas.toSize(), settings.imageSize))
+    );
+
+    return {
+      name: file.name,
+      image: imageCanvas.toDataURL(),
+      preprocessed: preprocessed.toDataURL(),
+      modifyDate: new Date(file.lastModified),
+    };
+  } finally {
+    URL.revokeObjectURL(data);
   }
 };
 

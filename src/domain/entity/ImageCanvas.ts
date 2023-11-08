@@ -1,4 +1,4 @@
-import { Rectangle, type Size } from '@/core/Geometry';
+import { Rectangle, type Point, type Size } from '@/core/Geometry';
 
 /** 画像データ */
 export class ImageCanvas implements Size {
@@ -136,6 +136,29 @@ export class ImageCanvas implements Size {
     }
 
     return data;
+  }
+
+  /**
+   * ピクセル単位で走査する
+   * @param range 走査範囲
+   * @param scanner 走査処理用関数
+   * @returns 自身のインスタンス
+   */
+  public scanBitmap(
+    range: Rectangle,
+    scanner: (color: { r: number; g: number; b: number }, point: Point, idx: number) => void
+  ): ImageCanvas {
+    const ctx = this.canvas.getContext('2d')!;
+    const imagedata = ctx.getImageData(range.x, range.y, range.w, range.h);
+
+    for (let x = 0; x < imagedata.width; x++) {
+      for (let y = 0; y < imagedata.height; y++) {
+        const idx = (x + y * imagedata.width) * 4;
+        scanner({ r: imagedata.data[idx], g: imagedata.data[idx + 1], b: imagedata.data[idx + 2] }, { x, y }, idx);
+      }
+    }
+
+    return this;
   }
 
   /**

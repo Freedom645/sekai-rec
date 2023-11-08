@@ -82,9 +82,34 @@ export const convertPresetToAnalysisSetting = (preset: Preset): AnalysisSetting 
     const element: IAnalysisElement = {
       analysisElementType: (): AnalysisElementType => e,
       analysisRange: (): Rectangle => preset.position[e],
-      analysisMethod: (): AnalysisMethodType =>
-        e === Element.TITLE || e === Element.DIFFICULT ? AnalysisMethodType.OCR_STRING : AnalysisMethodType.OCR_NUMBER,
-      binarizeValue: (): number | undefined => preset.threshold[e] ?? preset.threshold.default,
+      analysisMethod: (): AnalysisMethodType => {
+        if (preset.key.includes('RankMatch') && e === Element.TITLE) {
+          // TODO 無理やりの設定の為、修正必須
+          return AnalysisMethodType.P_HASH;
+        }
+
+        if (preset.key.includes('v3') && preset.key.includes('RankMatch') && e === Element.DIFFICULT) {
+          // TODO 無理やりの設定の為、修正必須
+          return AnalysisMethodType.C_CLASS;
+        }
+
+        return e === Element.TITLE || e === Element.DIFFICULT
+          ? AnalysisMethodType.OCR_STRING
+          : AnalysisMethodType.OCR_NUMBER;
+      },
+      binarizeValue: (): number | undefined => {
+        if (preset.key.includes('RankMatch') && e === Element.TITLE) {
+          // TODO 無理やりの設定の為、修正必須
+          return undefined;
+        }
+
+        if (preset.key.includes('v3') && preset.key.includes('RankMatch') && e === Element.DIFFICULT) {
+          // TODO 無理やりの設定の為、修正必須
+          return undefined;
+        }
+
+        return preset.threshold[e] ?? preset.threshold.default;
+      },
     };
     return element;
   });
