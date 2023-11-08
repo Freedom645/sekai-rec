@@ -41,6 +41,7 @@ export interface AnalyzerSet {
   [AnalysisMethodType.OCR_STRING]: IAnalyzer;
   [AnalysisMethodType.OCR_NUMBER]: IAnalyzer;
   [AnalysisMethodType.P_HASH]: IAnalyzer;
+  [AnalysisMethodType.C_CLASS]: IAnalyzer;
 }
 
 /** 要素別の解析結果 */

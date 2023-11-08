@@ -11,6 +11,7 @@ import { PHashService, type MusicService } from '@/domain/service/PHashService';
 import { Checker } from '@/module/Corrector';
 import type { IJacketHashRepository } from '@/domain/repository/JacketHashRepository';
 import SekaiRecApi from '@/infrastracture/api/SekaiRecApi';
+import { ColorClassService } from '@/domain/service/ColorClassService';
 
 export interface Settings {
   files: File[];
@@ -105,6 +106,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
         [AnalysisMethodType.OCR_STRING]: new OcrService('string'),
         [AnalysisMethodType.OCR_NUMBER]: new OcrService('number', { workerNum: 2 }),
         [AnalysisMethodType.P_HASH]: new PHashService(jacketHashRepository, musicService),
+        [AnalysisMethodType.C_CLASS]: new ColorClassService(),
       };
       const corrector: ICorrector = {
         searchMusicTitle: (title) => searchFuzzy(title)[0].musicId,
