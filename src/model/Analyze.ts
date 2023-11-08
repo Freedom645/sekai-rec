@@ -83,7 +83,7 @@ export const convertPresetToAnalysisSetting = (preset: Preset): AnalysisSetting 
       analysisElementType: (): AnalysisElementType => e,
       analysisRange: (): Rectangle => preset.position[e],
       analysisMethod: (): AnalysisMethodType => {
-        if (preset.key === 'v2_iPadPro11-RankMatch' && e === Element.TITLE) {
+        if (preset.key.includes('RankMatch') && e === Element.TITLE) {
           // TODO 無理やりの設定の為、修正必須
           return AnalysisMethodType.P_HASH;
         }
@@ -92,7 +92,7 @@ export const convertPresetToAnalysisSetting = (preset: Preset): AnalysisSetting 
           : AnalysisMethodType.OCR_NUMBER;
       },
       binarizeValue: (): number | undefined => {
-        if (preset.key === 'v2_iPadPro11-RankMatch' && e === Element.TITLE) {
+        if (preset.key.includes('RankMatch') && e === Element.TITLE) {
           // TODO 無理やりの設定の為、修正必須
           return undefined;
         }
