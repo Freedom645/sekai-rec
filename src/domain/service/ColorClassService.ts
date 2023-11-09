@@ -51,4 +51,8 @@ export class ColorClassService implements IAnalyzer {
 
     return DifficultyList.reduce((max, key) => (counter[max] < counter[key] ? key : max), Difficulty.APPEND);
   }
+
+  async teardown(): Promise<void> {
+    return;
+  }
 }

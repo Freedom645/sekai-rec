@@ -63,4 +63,8 @@ export class OcrService implements IAnalyzer {
       .addJob('recognize', image, { rectangle: rectangle.convertTesseractRect() })
       .then((res) => res.data.text.replace(/\r?\n$/, ''));
   }
+
+  async teardown(): Promise<void> {
+    await this.scheduler?.terminate();
+  }
 }

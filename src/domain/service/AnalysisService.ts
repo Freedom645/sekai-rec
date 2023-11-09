@@ -1,5 +1,5 @@
 import type { Rectangle } from '@/core/Geometry';
-import { AnalysisMethodType } from '@/domain/value/AnalysisMethodType';
+import { AnalysisMethodType, AnalysisMethodTypeList } from '@/domain/value/AnalysisMethodType';
 import type { AnalysisSetting } from '@/domain/entity/AnalysisSetting';
 import { ImageCanvas } from '@/domain//entity/ImageCanvas';
 import { AnalysisElementType } from '@/domain//value/AnalysisElementType';
@@ -26,8 +26,19 @@ export interface ICorrector {
 }
 
 export interface IAnalyzer {
+  /** 前処理 */
   setup(): Promise<void>;
+
+  /**
+   * 解析処理を実施する
+   * @param image 画像全体
+   * @param rectangle 解析範囲
+   * @returns 解析結果の文字列
+   */
   recognize(image: string, rectangle: Rectangle): Promise<string>;
+
+  /** 後処理 */
+  teardown(): Promise<void>;
 }
 
 export interface IProgress {
@@ -62,38 +73,42 @@ export class AnalysisService {
 
   public async execute(images: string[], settings: AnalysisSetting, progress: IProgress): Promise<AnalysisResult[]> {
     // セットアップ
-    const setupTasks = (Object.values(this.analyzerSet) as IAnalyzer[]).map((d) => d.setup());
-    await this.awaitAllTasks(setupTasks, (p) => progress.updateSetup(p));
+    const setupTasks = AnalysisMethodTypeList.map((key) => this.analyzerSet[key].setup());
+    try {
+      await this.awaitAllTasks(setupTasks, (p) => progress.updateSetup(p));
 
-    // 二値化
-    const binarizeTasks = images.map((img) => this.createBinarizeTask(img, settings));
-    const imageList = await this.awaitAllTasks(binarizeTasks, (p) => progress.updateBinarize(p));
+      // 二値化
+      const binarizeTasks = images.map((img) => this.createBinarizeTask(img, settings));
+      const imageList = await this.awaitAllTasks(binarizeTasks, (p) => progress.updateBinarize(p));
 
-    // OCR
-    const ocrTasks = imageList.flatMap((img, index) => this.createOcrTask(index, img, settings));
-    const ocrList = await this.awaitAllTasks(ocrTasks, (p) => progress.updateAnalysis(p));
-    const groupingOcrRes = ocrList.reduce((obj, res) => {
-      const array = obj[res.index] ?? [];
-      array.push(res);
-      obj[res.index] = array;
-      return obj;
-    }, [] as AnalysisElementResult[][]);
+      // OCR
+      const ocrTasks = imageList.flatMap((img, index) => this.createOcrTask(index, img, settings));
+      const ocrList = await this.awaitAllTasks(ocrTasks, (p) => progress.updateAnalysis(p));
+      const groupingOcrRes = ocrList.reduce((obj, res) => {
+        const array = obj[res.index] ?? [];
+        array.push(res);
+        obj[res.index] = array;
+        return obj;
+      }, [] as AnalysisElementResult[][]);
 
-    // データ補正
-    let completedNum = 0;
-    const result: AnalysisResult[] = groupingOcrRes
-      .map((resArray) => this.createCorrectTask(resArray))
-      .map((score, index) => {
-        progress.updateCorrect((100 * ++completedNum) / groupingOcrRes.length);
-        return new AnalysisResult({
-          originalImage: images[index],
-          preprocessedImage: imageList[index].toDataURL(),
-          score: score,
+      // データ補正
+      let completedNum = 0;
+      const result: AnalysisResult[] = groupingOcrRes
+        .map((resArray) => this.createCorrectTask(resArray))
+        .map((score, index) => {
+          progress.updateCorrect((100 * ++completedNum) / groupingOcrRes.length);
+          return new AnalysisResult({
+            originalImage: images[index],
+            preprocessedImage: imageList[index].toDataURL(),
+            score: score,
+          });
         });
-      });
-    progress.updateCorrect(100);
-
-    return result;
+      progress.updateCorrect(100);
+      return result;
+    } finally {
+      // 終了処理
+      await Promise.all(AnalysisMethodTypeList.map((key) => this.analyzerSet[key].teardown()));
+    }
   }
 
   /**
