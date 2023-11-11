@@ -32,4 +32,8 @@ export class PHashService implements IAnalyzer {
 
     return this.musicService.search(id);
   }
+
+  async teardown(): Promise<void> {
+    this.jacketHash = undefined;
+  }
 }
